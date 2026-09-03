@@ -75,6 +75,7 @@ export function MoreMenu({
                         <Link
                             key={item.title}
                             href={item.href}
+                            onClick={() => onOpenChange(false)}
                             className="hover:bg-accent hover:text-accent-foreground flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center"
                         >
                             <item.icon className="size-5" />
