@@ -116,6 +116,8 @@ COPY --from=vendor-build /var/www/html/public /var/www/html/public
 
 FROM vendor-build AS app
 
+COPY docker/php/opcache-prod.ini /usr/local/etc/php/conf.d/zz-opcache-prod.ini
+
 RUN mkdir -p \
     /var/www/html/storage/framework/cache \
     /var/www/html/storage/framework/sessions \

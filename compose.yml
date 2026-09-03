@@ -24,6 +24,9 @@ services:
     networks:
       - laravel
 
+    volumes:
+      - storage_public:/var/www/html/storage/app/public
+
   nginx:
     build:
       context: .
@@ -42,6 +45,9 @@ services:
 
     networks:
       - laravel
+
+    volumes:
+      - storage_public:/var/www/html/public/storage
 
   mysql:
     image: mysql:8.4
@@ -93,3 +99,4 @@ networks:
 volumes:
   mysql_data:
   redis_data:
+  storage_public:
