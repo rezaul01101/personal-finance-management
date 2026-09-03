@@ -8,6 +8,8 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
 use App\Http\Controllers\MonthlyBudgetController;
+use App\Http\Controllers\SavingsGoalController;
+use App\Http\Controllers\SavingsTransactionController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -25,4 +27,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('incomes', IncomeController::class)->except(['show']);
 
     Route::resource('transfers', AccountTransferController::class)->except(['show']);
+
+    Route::resource('savings-goals', SavingsGoalController::class)->only(['index', 'store', 'show', 'update', 'destroy']);
+    Route::resource('savings-goals.transactions', SavingsTransactionController::class)
+        ->shallow()
+        ->except(['index', 'show']);
 });

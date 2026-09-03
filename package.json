@@ -3,9 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vp build",
+        "build": "vite build",
         "build:ssr": "vp build && vp build --ssr",
-        "dev": "vp dev",
+        "dev": "vite",
         "check": "vp check",
         "check:fix": "vp check --fix",
         "types:check": "tsc --noEmit"

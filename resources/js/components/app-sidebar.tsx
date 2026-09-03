@@ -4,6 +4,7 @@ import {
     Banknote,
     LayoutGrid,
     ListTree,
+    PiggyBank,
     Receipt,
     Tags,
     Wallet,
@@ -28,6 +29,7 @@ import budgets from '@/routes/budgets';
 import expenseCategories from '@/routes/expense-categories';
 import expenses from '@/routes/expenses';
 import incomes from '@/routes/incomes';
+import savingsGoals from '@/routes/savings-goals';
 import transfers from '@/routes/transfers';
 import type { NavItem } from '@/types';
 
@@ -80,6 +82,14 @@ const accountsNavItems: NavItem[] = [
     },
 ];
 
+const savingsNavItems: NavItem[] = [
+    {
+        title: 'Savings',
+        href: savingsGoals.index(),
+        icon: PiggyBank,
+    },
+];
+
 export function AppSidebar() {
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -99,6 +109,7 @@ export function AppSidebar() {
                 <NavMain items={mainNavItems} label="Main" />
                 <NavMain items={budgetingNavItems} label="Budgeting" />
                 <NavMain items={accountsNavItems} label="Accounts" />
+                <NavMain items={savingsNavItems} label="Savings" />
             </SidebarContent>
 
             <SidebarFooter>

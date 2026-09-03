@@ -29,6 +29,7 @@ export default defineConfig({
         }),
     ]),
     server: {
+        host: process.env.DOCKER === 'true' ? '0.0.0.0' : undefined,
         watch: {
             ignored: [
                 '**/.agents/**',

@@ -22,6 +22,7 @@ import budgetCategories from '@/routes/budget-categories';
 import expenseCategories from '@/routes/expense-categories';
 import incomes from '@/routes/incomes';
 import { edit as editProfile } from '@/routes/profile';
+import savingsGoals from '@/routes/savings-goals';
 import transfers from '@/routes/transfers';
 import type { InertiaLinkProps } from '@inertiajs/react';
 
@@ -29,7 +30,6 @@ const COMING_SOON: {
     title: string;
     icon: ComponentType<{ className?: string }>;
 }[] = [
-    { title: 'Savings', icon: PiggyBank },
     { title: 'Loans Given', icon: HandCoins },
     { title: 'Loans Taken', icon: HandCoins },
 ];
@@ -40,6 +40,7 @@ const MANAGE_ITEMS: {
     icon: ComponentType<{ className?: string }>;
 }[] = [
     { title: 'Income', href: incomes.index(), icon: Banknote },
+    { title: 'Savings', href: savingsGoals.index(), icon: PiggyBank },
     { title: 'Transfers', href: transfers.index(), icon: ArrowLeftRight },
     {
         title: 'Budget Categories',

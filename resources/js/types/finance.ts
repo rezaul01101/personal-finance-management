@@ -9,6 +9,10 @@ export type IncomeSource =
     | 'bonus'
     | 'other';
 
+export type SavingsGoalStatus = 'active' | 'completed' | 'archived';
+
+export type SavingsTransactionType = 'contribution' | 'withdrawal';
+
 export interface Account {
     id: number;
     name: string;
@@ -85,6 +89,34 @@ export interface BudgetSummary {
     remaining_days: number;
     daily_safe_spend: string;
     usage_percentage: number;
+}
+
+export interface SavingsGoal {
+    id: number;
+    name: string;
+    target_amount: string;
+    target_date: string | null;
+    description: string | null;
+    status: SavingsGoalStatus;
+}
+
+export interface SavingsSummary {
+    savings_goal_id: number;
+    saved_amount: string;
+    target_amount: string;
+    remaining_amount: string;
+    usage_percentage: number;
+}
+
+export interface SavingsTransaction {
+    id: number;
+    savings_goal_id: number;
+    account_id: number;
+    type: SavingsTransactionType;
+    amount: string;
+    transacted_on: string;
+    note: string | null;
+    account?: Account;
 }
 
 export interface Paginated<T> {
