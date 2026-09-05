@@ -49,12 +49,13 @@ test('creating an account requires a name and a valid type', function () {
 
 test('a user can update their own account', function () {
     $user = User::factory()->create();
-    $account = Account::factory()->for($user)->create(['name' => 'Old Name']);
+    $account = Account::factory()->for($user)->create(['name' => 'Old Name', 'balance' => 1000]);
 
     $this->actingAs($user)
         ->put(route('accounts.update', $account), [
             'name' => 'New Name',
             'type' => AccountType::Bank->value,
+            'balance' => 1000,
             'status' => 'active',
         ])
         ->assertRedirect(route('accounts.index'));
@@ -101,13 +102,28 @@ test('a user cannot delete another users account', function () {
     $this->assertDatabaseHas('accounts', ['id' => $account->id]);
 });
 
-test('the balance cannot be mass assigned through the store endpoint', function () {
+test('a user can set an opening balance when creating an account', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)->post(route('accounts.store'), [
         'name' => 'Cash',
         'type' => AccountType::Cash->value,
-        'balance' => 999999,
+        'balance' => 15000,
+    ]);
+
+    $this->assertDatabaseHas('accounts', [
+        'user_id' => $user->id,
+        'name' => 'Cash',
+        'balance' => '15000.00',
+    ]);
+});
+
+test('omitting the balance when creating an account defaults it to zero', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post(route('accounts.store'), [
+        'name' => 'Cash',
+        'type' => AccountType::Cash->value,
     ]);
 
     $this->assertDatabaseHas('accounts', [
@@ -115,4 +131,20 @@ test('the balance cannot be mass assigned through the store endpoint', function 
         'name' => 'Cash',
         'balance' => '0.00',
     ]);
+});
+
+test('a user can edit an existing account\'s balance', function () {
+    $user = User::factory()->create();
+    $account = Account::factory()->for($user)->create(['balance' => 1000]);
+
+    $this->actingAs($user)
+        ->put(route('accounts.update', $account), [
+            'name' => $account->name,
+            'type' => $account->type->value,
+            'balance' => 7500,
+            'status' => 'active',
+        ])
+        ->assertRedirect(route('accounts.index'));
+
+    expect($account->fresh()->balance)->toBe('7500.00');
 });

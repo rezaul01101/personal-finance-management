@@ -44,10 +44,12 @@ export default function AccountsIndex({
     const form = useForm<{
         name: string;
         type: AccountType;
+        balance: string;
         status: 'active' | 'archived';
     }>({
         name: '',
         type: 'cash',
+        balance: '0',
         status: 'active',
     });
 
@@ -63,6 +65,7 @@ export default function AccountsIndex({
         form.setData({
             name: account.name,
             type: account.type,
+            balance: account.balance,
             status: account.status,
         });
         form.clearErrors();
@@ -160,6 +163,33 @@ export default function AccountsIndex({
                                         </SelectContent>
                                     </Select>
                                     <InputError message={form.errors.type} />
+                                </div>
+
+                                <div className="grid gap-2">
+                                    <Label htmlFor="balance">
+                                        {editing
+                                            ? 'Balance'
+                                            : 'Opening Balance'}
+                                    </Label>
+                                    <Input
+                                        id="balance"
+                                        inputMode="decimal"
+                                        value={form.data.balance}
+                                        onChange={(e) =>
+                                            form.setData(
+                                                'balance',
+                                                e.target.value,
+                                            )
+                                        }
+                                        placeholder="0"
+                                    />
+                                    {!editing && (
+                                        <p className="text-muted-foreground text-xs">
+                                            How much money is currently in this
+                                            account?
+                                        </p>
+                                    )}
+                                    <InputError message={form.errors.balance} />
                                 </div>
 
                                 {editing && (

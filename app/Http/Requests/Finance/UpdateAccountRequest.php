@@ -20,6 +20,7 @@ class UpdateAccountRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:100'],
             'type' => ['required', Rule::enum(AccountType::class)],
+            'balance' => ['required', 'numeric'],
             'status' => ['required', Rule::enum(CategoryStatus::class)],
         ];
     }

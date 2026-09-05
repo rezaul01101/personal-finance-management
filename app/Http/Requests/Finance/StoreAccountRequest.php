@@ -19,6 +19,7 @@ class StoreAccountRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:100'],
             'type' => ['required', Rule::enum(AccountType::class)],
+            'balance' => ['nullable', 'numeric'],
         ];
     }
 }
