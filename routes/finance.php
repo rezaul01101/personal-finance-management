@@ -7,6 +7,10 @@ use App\Http\Controllers\ExpenseAttachmentController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\IncomeController;
+use App\Http\Controllers\LoanAttachmentController;
+use App\Http\Controllers\LoanController;
+use App\Http\Controllers\LoanRepaymentController;
+use App\Http\Controllers\LoanTransferController;
 use App\Http\Controllers\MonthlyBudgetController;
 use App\Http\Controllers\SavingsGoalController;
 use App\Http\Controllers\SavingsTransactionController;
@@ -32,4 +36,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('savings-goals.transactions', SavingsTransactionController::class)
         ->shallow()
         ->except(['index', 'show']);
+
+    Route::resource('loans', LoanController::class);
+    Route::delete('loans/{loan}/attachments/{attachment}', [LoanAttachmentController::class, 'destroy'])
+        ->name('loans.attachments.destroy');
+    Route::resource('loans.repayments', LoanRepaymentController::class)
+        ->shallow()
+        ->except(['index', 'show']);
+    // Kept fully nested (not ->shallow()): a shallow resource would generate
+    // top-level transfers.edit/update/destroy, colliding with the existing
+    // `transfers` (AccountTransferController) resource registered above.
+    Route::resource('loans.transfers', LoanTransferController::class)->except(['index', 'show']);
 });

@@ -4,6 +4,8 @@ use App\Models\Account;
 use App\Models\BudgetCategory;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Models\Loan;
+use App\Models\LoanRepayment;
 use App\Models\MonthlyBudget;
 use App\Models\User;
 use Carbon\CarbonImmutable;
@@ -50,6 +52,36 @@ test('the spec example: 15,000 budget, 12,400 used, 2 days left, 1,300 daily saf
             ->where('totals.total_used', '12400.00'));
 
     CarbonImmutable::setTestNow();
+});
+
+test('the loan summary never mixes given and taken totals', function () {
+    $user = User::factory()->create();
+    $account = Account::factory()->for($user)->create();
+
+    $given = Loan::factory()->for($user)->given()->create(['account_id' => $account->id, 'amount' => 10000]);
+    LoanRepayment::factory()->for($user)->create(['loan_id' => $given->id, 'account_id' => null, 'amount' => 4000]);
+
+    $taken = Loan::factory()->for($user)->taken()->create(['account_id' => $account->id, 'amount' => 20000]);
+    LoanRepayment::factory()->for($user)->create(['loan_id' => $taken->id, 'account_id' => $account->id, 'amount' => 5000]);
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertInertia(fn ($page) => $page
+            ->where('hasLoans', true)
+            ->where('loanSummary.total_given', '10000.00')
+            ->where('loanSummary.total_returned_by_borrowers', '4000.00')
+            ->where('loanSummary.outstanding_receivable', '6000.00')
+            ->where('loanSummary.total_taken', '20000.00')
+            ->where('loanSummary.total_paid_to_lenders', '5000.00')
+            ->where('loanSummary.outstanding_payable', '15000.00'));
+});
+
+test('hasLoans is false for a user with no loans', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('dashboard'))
+        ->assertInertia(fn ($page) => $page->where('hasLoans', false));
 });
 
 test('a budget category with no monthly budget for the selected month does not appear as a card', function () {

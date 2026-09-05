@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
+import { AmountDisplay } from '@/components/finance/amount-display';
 import { BudgetCategoryCard } from '@/components/finance/budget-category-card';
 import { MonthSelector } from '@/components/finance/month-selector';
 import { TopCategoryList } from '@/components/finance/top-category-list';
@@ -9,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { dashboard } from '@/routes';
 import budgets from '@/routes/budgets';
 import expenses from '@/routes/expenses';
-import type { BudgetSummary, Expense } from '@/types/finance';
+import loans from '@/routes/loans';
+import type { BudgetSummary, Expense, LoanSummary } from '@/types/finance';
 
 interface BudgetRow {
     category: { id: number; name: string; icon: string | null };
@@ -23,6 +25,8 @@ export default function Dashboard({
     budgets: budgetRows,
     topExpenseCategories,
     recentExpenses,
+    loanSummary,
+    hasLoans,
 }: {
     year: number;
     month: number;
@@ -34,6 +38,8 @@ export default function Dashboard({
         percentage: number;
     }[];
     recentExpenses: Expense[];
+    loanSummary: LoanSummary;
+    hasLoans: boolean;
 }) {
     return (
         <>
@@ -156,6 +162,50 @@ export default function Dashboard({
                         </CardContent>
                     </Card>
                 </div>
+
+                {/* Loans given/taken - kept separate, never summed together (spec §27) */}
+                <Card>
+                    <CardHeader className="flex-row items-center justify-between">
+                        <CardTitle>Loans</CardTitle>
+                        <Button variant="link" asChild className="h-auto p-0">
+                            <Link href={loans.index()}>View all</Link>
+                        </Button>
+                    </CardHeader>
+                    <CardContent>
+                        {!hasLoans ? (
+                            <p className="text-muted-foreground text-sm">
+                                No active loans.{' '}
+                                <Link
+                                    href={loans.create()}
+                                    className="text-primary underline"
+                                >
+                                    Add Loan
+                                </Link>
+                            </p>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <p className="text-muted-foreground text-xs">
+                                        Given (outstanding)
+                                    </p>
+                                    <AmountDisplay
+                                        value={
+                                            loanSummary.outstanding_receivable
+                                        }
+                                    />
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-muted-foreground text-xs">
+                                        Taken (outstanding)
+                                    </p>
+                                    <AmountDisplay
+                                        value={loanSummary.outstanding_payable}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             </div>
         </>
     );

@@ -119,6 +119,64 @@ export interface SavingsTransaction {
     account?: Account;
 }
 
+export type LoanType = 'given' | 'taken';
+
+export interface Loan {
+    id: number;
+    account_id: number;
+    type: LoanType;
+    person_name: string;
+    amount: string;
+    loan_date: string;
+    expected_return_date: string | null;
+    note: string | null;
+    account?: Account;
+    attachments?: LoanAttachment[];
+}
+
+export interface LoanAttachment {
+    id: number;
+    original_filename: string | null;
+    url: string;
+}
+
+export interface LoanRepayment {
+    id: number;
+    loan_id: number;
+    account_id: number | null;
+    amount: string;
+    repaid_on: string;
+    note: string | null;
+    account?: Account | null;
+}
+
+export interface LoanTransfer {
+    id: number;
+    loan_id: number;
+    account_id: number;
+    amount: string;
+    transferred_on: string;
+    note: string | null;
+    account?: Account;
+}
+
+export interface LoanProgress {
+    loan_id: number;
+    total_repaid: string;
+    outstanding: string;
+    total_transferred: string;
+    held_balance: string;
+}
+
+export interface LoanSummary {
+    total_given: string;
+    total_returned_by_borrowers: string;
+    outstanding_receivable: string;
+    total_taken: string;
+    total_paid_to_lenders: string;
+    outstanding_payable: string;
+}
+
 export interface Paginated<T> {
     data: T[];
     current_page: number;

@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import {
     ArrowLeftRight,
     Banknote,
+    HandCoins,
     LayoutGrid,
     ListTree,
     PiggyBank,
@@ -29,6 +30,7 @@ import budgets from '@/routes/budgets';
 import expenseCategories from '@/routes/expense-categories';
 import expenses from '@/routes/expenses';
 import incomes from '@/routes/incomes';
+import loans from '@/routes/loans';
 import savingsGoals from '@/routes/savings-goals';
 import transfers from '@/routes/transfers';
 import type { NavItem } from '@/types';
@@ -90,6 +92,14 @@ const savingsNavItems: NavItem[] = [
     },
 ];
 
+const loansNavItems: NavItem[] = [
+    {
+        title: 'Loans',
+        href: loans.index(),
+        icon: HandCoins,
+    },
+];
+
 export function AppSidebar() {
     return (
         <Sidebar collapsible="icon" variant="inset">
@@ -110,6 +120,7 @@ export function AppSidebar() {
                 <NavMain items={budgetingNavItems} label="Budgeting" />
                 <NavMain items={accountsNavItems} label="Accounts" />
                 <NavMain items={savingsNavItems} label="Savings" />
+                <NavMain items={loansNavItems} label="Loans" />
             </SidebarContent>
 
             <SidebarFooter>

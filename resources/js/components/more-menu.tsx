@@ -10,7 +10,6 @@ import {
     Wallet,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
-import { Badge } from '@/components/ui/badge';
 import {
     Sheet,
     SheetContent,
@@ -21,18 +20,11 @@ import accounts from '@/routes/accounts';
 import budgetCategories from '@/routes/budget-categories';
 import expenseCategories from '@/routes/expense-categories';
 import incomes from '@/routes/incomes';
+import loans from '@/routes/loans';
 import { edit as editProfile } from '@/routes/profile';
 import savingsGoals from '@/routes/savings-goals';
 import transfers from '@/routes/transfers';
 import type { InertiaLinkProps } from '@inertiajs/react';
-
-const COMING_SOON: {
-    title: string;
-    icon: ComponentType<{ className?: string }>;
-}[] = [
-    { title: 'Loans Given', icon: HandCoins },
-    { title: 'Loans Taken', icon: HandCoins },
-];
 
 const MANAGE_ITEMS: {
     title: string;
@@ -41,6 +33,7 @@ const MANAGE_ITEMS: {
 }[] = [
     { title: 'Income', href: incomes.index(), icon: Banknote },
     { title: 'Savings', href: savingsGoals.index(), icon: PiggyBank },
+    { title: 'Loans', href: loans.index(), icon: HandCoins },
     { title: 'Transfers', href: transfers.index(), icon: ArrowLeftRight },
     {
         title: 'Budget Categories',
@@ -83,26 +76,6 @@ export function MoreMenu({
                                 {item.title}
                             </span>
                         </Link>
-                    ))}
-                </div>
-
-                <p className="text-muted-foreground mt-2 text-xs font-semibold tracking-wide uppercase">
-                    Coming soon
-                </p>
-                <div className="grid grid-cols-4 gap-3">
-                    {COMING_SOON.map((item) => (
-                        <div
-                            key={item.title}
-                            className="text-muted-foreground flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center opacity-60"
-                        >
-                            <item.icon className="size-5" />
-                            <span className="text-xs leading-tight font-medium">
-                                {item.title}
-                            </span>
-                            <Badge variant="secondary" className="text-[10px]">
-                                Soon
-                            </Badge>
-                        </div>
                     ))}
                 </div>
             </SheetContent>

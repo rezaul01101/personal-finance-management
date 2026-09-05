@@ -1,5 +1,7 @@
 <?php
 
+use App\Exceptions\Finance\InsufficientLoanBalanceException;
+use App\Exceptions\Finance\InsufficientLoanHoldingBalanceException;
 use App\Exceptions\Finance\InsufficientSavingsException;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -30,4 +32,6 @@ return Application::configure(basePath: dirname(__DIR__))
         );
 
         $exceptions->render(fn (InsufficientSavingsException $e) => back()->withErrors(['amount' => $e->getMessage()]));
+        $exceptions->render(fn (InsufficientLoanBalanceException $e) => back()->withErrors(['amount' => $e->getMessage()]));
+        $exceptions->render(fn (InsufficientLoanHoldingBalanceException $e) => back()->withErrors(['amount' => $e->getMessage()]));
     })->create();
