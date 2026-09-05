@@ -60,12 +60,12 @@ export default function LoansShow({
 
     return (
         <>
-            <Head title={loan.person_name} />
+            <Head title={loan.contact.name} />
 
             <div className="space-y-6 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                     <Heading
-                        title={loan.person_name}
+                        title={loan.contact.name}
                         description={isGiven ? 'Loan given' : 'Loan taken'}
                     />
                     <div className="flex gap-2">
@@ -222,6 +222,6 @@ export default function LoansShow({
 LoansShow.layout = (props: { loan: Loan }) => ({
     breadcrumbs: [
         { title: 'Loans', href: loans.index() },
-        { title: props.loan.person_name, href: loans.show(props.loan.id) },
+        { title: props.loan.contact.name, href: loans.show(props.loan.id) },
     ],
 });

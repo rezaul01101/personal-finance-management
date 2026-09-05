@@ -58,6 +58,14 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * @return HasMany<Contact, $this>
+     */
+    public function contacts(): HasMany
+    {
+        return $this->hasMany(Contact::class);
+    }
+
+    /**
      * @return HasMany<BudgetCategory, $this>
      */
     public function budgetCategories(): HasMany

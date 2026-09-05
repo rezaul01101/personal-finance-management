@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Account;
+use App\Models\Contact;
 use App\Models\Loan;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -9,11 +10,12 @@ use Illuminate\Support\Facades\Storage;
 test('a loan can be created with no photo at all', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create();
+    $contact = Contact::factory()->for($user)->create();
 
     $this->actingAs($user)
         ->post(route('loans.store'), [
             'type' => 'given',
-            'person_name' => 'Karim',
+            'contact_id' => $contact->id,
             'amount' => '500',
             'account_id' => $account->id,
             'loan_date' => '2026-08-30',
@@ -29,10 +31,11 @@ test('a photo can be attached when creating a loan', function () {
 
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create();
+    $contact = Contact::factory()->for($user)->create();
 
     $this->actingAs($user)->post(route('loans.store'), [
         'type' => 'given',
-        'person_name' => 'Karim',
+        'contact_id' => $contact->id,
         'amount' => '500',
         'account_id' => $account->id,
         'loan_date' => '2026-08-30',

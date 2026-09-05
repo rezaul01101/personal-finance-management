@@ -44,8 +44,8 @@ export default function LoanRepaymentsCreate({
                 <Heading
                     title={
                         isGiven
-                            ? `Repayment from ${loan.person_name}`
-                            : `Repay ${loan.person_name}`
+                            ? `Repayment from ${loan.contact.name}`
+                            : `Repay ${loan.contact.name}`
                     }
                     description={
                         isGiven
@@ -124,7 +124,7 @@ export default function LoanRepaymentsCreate({
 LoanRepaymentsCreate.layout = (props: { loan: Loan }) => ({
     breadcrumbs: [
         { title: 'Loans', href: loans.index() },
-        { title: props.loan.person_name, href: loans.show(props.loan.id) },
+        { title: props.loan.contact.name, href: loans.show(props.loan.id) },
         {
             title: 'Record Repayment',
             href: loans.repayments.create(props.loan.id),

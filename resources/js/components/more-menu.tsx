@@ -7,6 +7,7 @@ import {
     PiggyBank,
     Settings,
     Tags,
+    Users,
     Wallet,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
@@ -18,6 +19,7 @@ import {
 } from '@/components/ui/sheet';
 import accounts from '@/routes/accounts';
 import budgetCategories from '@/routes/budget-categories';
+import contacts from '@/routes/contacts';
 import expenseCategories from '@/routes/expense-categories';
 import incomes from '@/routes/incomes';
 import loans from '@/routes/loans';
@@ -34,6 +36,7 @@ const MANAGE_ITEMS: {
     { title: 'Income', href: incomes.index(), icon: Banknote },
     { title: 'Savings', href: savingsGoals.index(), icon: PiggyBank },
     { title: 'Loans', href: loans.index(), icon: HandCoins },
+    { title: 'People', href: contacts.index(), icon: Users },
     { title: 'Transfers', href: transfers.index(), icon: ArrowLeftRight },
     {
         title: 'Budget Categories',

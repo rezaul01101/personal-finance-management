@@ -21,6 +21,12 @@ export interface Account {
     status: CategoryStatus;
 }
 
+export interface Contact {
+    id: number;
+    name: string;
+    loans_count?: number;
+}
+
 export interface BudgetCategory {
     id: number;
     name: string;
@@ -124,13 +130,14 @@ export type LoanType = 'given' | 'taken';
 export interface Loan {
     id: number;
     account_id: number;
+    contact_id: number;
     type: LoanType;
-    person_name: string;
     amount: string;
     loan_date: string;
     expected_return_date: string | null;
     note: string | null;
     account?: Account;
+    contact: Contact;
     attachments?: LoanAttachment[];
 }
 
@@ -166,6 +173,11 @@ export interface LoanProgress {
     outstanding: string;
     total_transferred: string;
     held_balance: string;
+}
+
+export interface ContactLoanSummary {
+    total_amount: string;
+    outstanding: string;
 }
 
 export interface LoanSummary {

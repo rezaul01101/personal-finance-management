@@ -3,6 +3,7 @@
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AccountTransferController;
 use App\Http\Controllers\BudgetCategoryController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ExpenseAttachmentController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
@@ -37,7 +38,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->shallow()
         ->except(['index', 'show']);
 
+    Route::resource('contacts', ContactController::class)->only(['index', 'store', 'update', 'destroy']);
+
     Route::resource('loans', LoanController::class);
+    Route::get('loans/contacts/{contact}', [LoanController::class, 'contact'])->name('loans.contacts.show');
     Route::delete('loans/{loan}/attachments/{attachment}', [LoanAttachmentController::class, 'destroy'])
         ->name('loans.attachments.destroy');
     Route::resource('loans.repayments', LoanRepaymentController::class)

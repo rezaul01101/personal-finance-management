@@ -5,6 +5,7 @@ namespace App\Services\Finance;
 use App\Enums\LoanType;
 use App\Exceptions\Finance\InsufficientLoanBalanceException;
 use App\Exceptions\Finance\InsufficientLoanHoldingBalanceException;
+use App\Models\Contact;
 use App\Models\Loan;
 use App\Models\LoanRepayment;
 use App\Models\User;
@@ -80,6 +81,25 @@ final class LoanCalculator
         if ($this->heldBalance($loan)->isNegative()) {
             throw new InsufficientLoanHoldingBalanceException;
         }
+    }
+
+    /**
+     * The combined principal a contact has been given/taken across every
+     * loan of the given direction - what "5k then 3k" should add up to.
+     */
+    public function contactTotal(Contact $contact, LoanType $type): Money
+    {
+        return Money::of($contact->loans()->where('type', $type)->sum('amount'));
+    }
+
+    /**
+     * The combined outstanding balance across every loan a contact has of
+     * the given direction.
+     */
+    public function contactOutstanding(Contact $contact, LoanType $type): Money
+    {
+        return $contact->loans()->where('type', $type)->get()
+            ->reduce(fn (Money $carry, Loan $loan) => $carry->add($this->outstanding($loan)), Money::zero());
     }
 
     /**

@@ -15,8 +15,8 @@ use Illuminate\Support\Carbon;
  * @property int $id
  * @property int $user_id
  * @property int $account_id
+ * @property int $contact_id
  * @property LoanType $type
- * @property string $person_name
  * @property string $amount
  * @property Carbon $loan_date
  * @property Carbon|null $expected_return_date
@@ -24,7 +24,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['account_id', 'type', 'person_name', 'amount', 'loan_date', 'expected_return_date', 'note'])]
+#[Fillable(['account_id', 'type', 'contact_id', 'amount', 'loan_date', 'expected_return_date', 'note'])]
 class Loan extends Model
 {
     /** @use HasFactory<LoanFactory> */
@@ -59,6 +59,14 @@ class Loan extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(Account::class);
+    }
+
+    /**
+     * @return BelongsTo<Contact, $this>
+     */
+    public function contact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class);
     }
 
     /**

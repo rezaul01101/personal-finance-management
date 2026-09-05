@@ -18,7 +18,10 @@ class StoreLoanRequest extends FormRequest
     {
         return [
             'type' => ['required', Rule::enum(LoanType::class)],
-            'person_name' => ['required', 'string', 'max:150'],
+            'contact_id' => [
+                'required',
+                Rule::exists('contacts', 'id')->where('user_id', $this->user()->id),
+            ],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'account_id' => [
                 'required',

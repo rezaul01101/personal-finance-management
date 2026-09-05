@@ -47,8 +47,8 @@ export default function LoanRepaymentsEdit({
                 <Heading
                     title={
                         isGiven
-                            ? `Repayment from ${loan.person_name}`
-                            : `Repay ${loan.person_name}`
+                            ? `Repayment from ${loan.contact.name}`
+                            : `Repay ${loan.contact.name}`
                     }
                     description={
                         isGiven
@@ -130,7 +130,7 @@ LoanRepaymentsEdit.layout = (props: {
 }) => ({
     breadcrumbs: [
         { title: 'Loans', href: loans.index() },
-        { title: props.loan.person_name, href: loans.show(props.loan.id) },
+        { title: props.loan.contact.name, href: loans.show(props.loan.id) },
         {
             title: 'Edit Repayment',
             href: repayments.edit(props.repayment.id),

@@ -38,7 +38,7 @@ class LoanTransferController extends Controller
 
         return Inertia::render('loans/transfers/create', [
             ...$this->formOptions($request),
-            'loan' => $loan,
+            'loan' => $loan->load('contact'),
             'heldBalance' => $this->loanCalculator->heldBalance($loan)->toDecimalString(),
         ]);
     }
@@ -68,7 +68,7 @@ class LoanTransferController extends Controller
 
         return Inertia::render('loans/transfers/edit', [
             ...$this->formOptions($request),
-            'loan' => $loan,
+            'loan' => $loan->load('contact'),
             'transfer' => $transfer,
             'heldBalance' => $this->loanCalculator->heldBalance($loan)->toDecimalString(),
         ]);

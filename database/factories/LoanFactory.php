@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\LoanType;
 use App\Models\Account;
+use App\Models\Contact;
 use App\Models\Loan;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -23,8 +24,8 @@ class LoanFactory extends Factory
         return [
             'user_id' => User::factory(),
             'account_id' => Account::factory(),
+            'contact_id' => Contact::factory(),
             'type' => fake()->randomElement(LoanType::cases()),
-            'person_name' => fake()->name(),
             'amount' => fake()->randomFloat(2, 1000, 100000),
             'loan_date' => now()->toDateString(),
             'expected_return_date' => fake()->optional()->dateTimeBetween('now', '+3 months')?->format('Y-m-d'),

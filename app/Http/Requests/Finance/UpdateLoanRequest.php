@@ -27,7 +27,10 @@ class UpdateLoanRequest extends FormRequest
         $loan = $this->route('loan');
 
         return [
-            'person_name' => ['required', 'string', 'max:150'],
+            'contact_id' => [
+                'required',
+                Rule::exists('contacts', 'id')->where('user_id', $this->user()->id),
+            ],
             'amount' => [
                 'bail',
                 'required',

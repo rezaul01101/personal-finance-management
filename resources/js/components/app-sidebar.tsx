@@ -8,6 +8,7 @@ import {
     PiggyBank,
     Receipt,
     Tags,
+    Users,
     Wallet,
     WalletCards,
 } from 'lucide-react';
@@ -27,6 +28,7 @@ import { dashboard } from '@/routes';
 import accounts from '@/routes/accounts';
 import budgetCategories from '@/routes/budget-categories';
 import budgets from '@/routes/budgets';
+import contacts from '@/routes/contacts';
 import expenseCategories from '@/routes/expense-categories';
 import expenses from '@/routes/expenses';
 import incomes from '@/routes/incomes';
@@ -97,6 +99,11 @@ const loansNavItems: NavItem[] = [
         title: 'Loans',
         href: loans.index(),
         icon: HandCoins,
+    },
+    {
+        title: 'People',
+        href: contacts.index(),
+        icon: Users,
     },
 ];
 

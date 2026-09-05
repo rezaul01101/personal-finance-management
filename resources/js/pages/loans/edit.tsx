@@ -1,6 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { AccountPicker } from '@/components/finance/account-picker';
 import { AmountDisplay } from '@/components/finance/amount-display';
+import { ContactPicker } from '@/components/finance/contact-picker';
 import { DateField } from '@/components/finance/date-field';
 import { NoteButton } from '@/components/finance/note-button';
 import { NumericKeypad } from '@/components/finance/numeric-keypad';
@@ -8,21 +9,22 @@ import { ReceiptPicker } from '@/components/finance/receipt-picker';
 import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import loanAttachments from '@/routes/loans/attachments';
 import loans from '@/routes/loans';
-import type { Account, Loan } from '@/types/finance';
+import type { Account, Contact, Loan } from '@/types/finance';
 
 export default function LoansEdit({
     loan,
     accounts,
+    contacts,
 }: {
     loan: Loan;
     accounts: Account[];
+    contacts: Contact[];
 }) {
     const form = useForm<{
-        person_name: string;
+        contact_id: string;
         amount: string;
         account_id: string;
         loan_date: string;
@@ -30,7 +32,7 @@ export default function LoansEdit({
         note: string;
         photos: File[];
     }>({
-        person_name: loan.person_name,
+        contact_id: String(loan.contact_id),
         amount: loan.amount,
         account_id: String(loan.account_id),
         loan_date: loan.loan_date,
@@ -67,18 +69,17 @@ export default function LoansEdit({
                 </div>
 
                 <div className="grid gap-1">
-                    <Label htmlFor="person_name" className="text-xs">
+                    <Label className="text-xs">
                         {isGiven ? 'Given to' : 'Borrowed from'}
                     </Label>
-                    <Input
-                        id="person_name"
-                        value={form.data.person_name}
-                        onChange={(e) =>
-                            form.setData('person_name', e.target.value)
+                    <ContactPicker
+                        contacts={contacts}
+                        value={form.data.contact_id}
+                        onChange={(value) =>
+                            form.setData('contact_id', value)
                         }
-                        placeholder="e.g. Anamul"
                     />
-                    <InputError message={form.errors.person_name} />
+                    <InputError message={form.errors.contact_id} />
                 </div>
 
                 <AmountDisplay value={form.data.amount} />

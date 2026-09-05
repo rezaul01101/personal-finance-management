@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Account;
+use App\Models\Contact;
 use App\Models\Loan;
 use App\Models\LoanRepayment;
 use App\Models\User;
@@ -14,11 +15,12 @@ test('guests are redirected to the login page', function () {
 test('creating a loan given debits the source account', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create(['balance' => 10000]);
+    $contact = Contact::factory()->for($user)->create(['name' => 'Anamul']);
 
     $this->actingAs($user)
         ->post(route('loans.store'), [
             'type' => 'given',
-            'person_name' => 'Anamul',
+            'contact_id' => $contact->id,
             'amount' => '5000',
             'account_id' => $account->id,
             'loan_date' => '2026-08-30',
@@ -29,7 +31,7 @@ test('creating a loan given debits the source account', function () {
     $this->assertDatabaseHas('loans', [
         'user_id' => $user->id,
         'type' => 'given',
-        'person_name' => 'Anamul',
+        'contact_id' => $contact->id,
         'amount' => '5000.00',
     ]);
 
@@ -39,11 +41,12 @@ test('creating a loan given debits the source account', function () {
 test('creating a loan taken credits the destination account', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create(['balance' => 10000]);
+    $contact = Contact::factory()->for($user)->create(['name' => 'Rahim']);
 
     $this->actingAs($user)
         ->post(route('loans.store'), [
             'type' => 'taken',
-            'person_name' => 'Rahim',
+            'contact_id' => $contact->id,
             'amount' => '20000',
             'account_id' => $account->id,
             'loan_date' => '2026-08-30',
@@ -56,8 +59,10 @@ test('creating a loan taken credits the destination account', function () {
 test('editing a loan given reverses the old amount and applies the new one', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create(['balance' => 10000]);
+    $contact = Contact::factory()->for($user)->create();
     $loan = Loan::factory()->for($user)->given()->create([
         'account_id' => $account->id,
+        'contact_id' => $contact->id,
         'amount' => 2000,
     ]);
     // Simulate the debit that would have happened when the loan was created.
@@ -65,7 +70,7 @@ test('editing a loan given reverses the old amount and applies the new one', fun
 
     $this->actingAs($user)
         ->put(route('loans.update', $loan), [
-            'person_name' => $loan->person_name,
+            'contact_id' => $loan->contact_id,
             'amount' => '3000',
             'account_id' => $account->id,
             'loan_date' => '2026-08-30',
@@ -80,14 +85,16 @@ test('editing a loan to move it to a different account reverses the old account 
     $user = User::factory()->create();
     $oldAccount = Account::factory()->for($user)->create(['balance' => 10000]);
     $newAccount = Account::factory()->for($user)->create(['balance' => 5000]);
+    $contact = Contact::factory()->for($user)->create();
     $loan = Loan::factory()->for($user)->taken()->create([
         'account_id' => $oldAccount->id,
+        'contact_id' => $contact->id,
         'amount' => 1000,
     ]);
     $oldAccount->forceFill(['balance' => 11000])->save();
 
     $this->actingAs($user)->put(route('loans.update', $loan), [
-        'person_name' => $loan->person_name,
+        'contact_id' => $loan->contact_id,
         'amount' => '1000',
         'account_id' => $newAccount->id,
         'loan_date' => '2026-08-30',
@@ -100,8 +107,10 @@ test('editing a loan to move it to a different account reverses the old account 
 test('the loan amount cannot be edited below what has already been repaid', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create();
+    $contact = Contact::factory()->for($user)->create();
     $loan = Loan::factory()->for($user)->taken()->create([
         'account_id' => $account->id,
+        'contact_id' => $contact->id,
         'amount' => 10000,
     ]);
     LoanRepayment::factory()->for($user)->create([
@@ -112,7 +121,7 @@ test('the loan amount cannot be edited below what has already been repaid', func
 
     $this->actingAs($user)
         ->put(route('loans.update', $loan), [
-            'person_name' => $loan->person_name,
+            'contact_id' => $loan->contact_id,
             'amount' => '3000',
             'account_id' => $account->id,
             'loan_date' => '2026-08-30',
@@ -152,11 +161,12 @@ test('deleting a loan with existing repayments is rejected', function () {
 test('amount must be greater than zero', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create();
+    $contact = Contact::factory()->for($user)->create();
 
     $this->actingAs($user)
         ->post(route('loans.store'), [
             'type' => 'given',
-            'person_name' => 'Karim',
+            'contact_id' => $contact->id,
             'amount' => '0',
             'account_id' => $account->id,
             'loan_date' => '2026-08-30',
@@ -167,11 +177,12 @@ test('amount must be greater than zero', function () {
 test('type must be a valid enum value', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create();
+    $contact = Contact::factory()->for($user)->create();
 
     $this->actingAs($user)
         ->post(route('loans.store'), [
             'type' => 'other',
-            'person_name' => 'Karim',
+            'contact_id' => $contact->id,
             'amount' => '100',
             'account_id' => $account->id,
             'loan_date' => '2026-08-30',
@@ -179,7 +190,7 @@ test('type must be a valid enum value', function () {
         ->assertInvalid(['type']);
 });
 
-test('person name is required', function () {
+test('contact is required', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create();
 
@@ -190,23 +201,41 @@ test('person name is required', function () {
             'account_id' => $account->id,
             'loan_date' => '2026-08-30',
         ])
-        ->assertInvalid(['person_name']);
+        ->assertInvalid(['contact_id']);
 });
 
 test('a user cannot attach another users account to their own loan', function () {
     $user = User::factory()->create();
+    $contact = Contact::factory()->for($user)->create();
     $stranger = User::factory()->create();
     $strangerAccount = Account::factory()->for($stranger)->create();
 
     $this->actingAs($user)
         ->post(route('loans.store'), [
             'type' => 'given',
-            'person_name' => 'Karim',
+            'contact_id' => $contact->id,
             'amount' => '100',
             'account_id' => $strangerAccount->id,
             'loan_date' => '2026-08-30',
         ])
         ->assertInvalid(['account_id']);
+});
+
+test('a user cannot attach another users contact to their own loan', function () {
+    $user = User::factory()->create();
+    $account = Account::factory()->for($user)->create();
+    $stranger = User::factory()->create();
+    $strangerContact = Contact::factory()->for($stranger)->create();
+
+    $this->actingAs($user)
+        ->post(route('loans.store'), [
+            'type' => 'given',
+            'contact_id' => $strangerContact->id,
+            'amount' => '100',
+            'account_id' => $account->id,
+            'loan_date' => '2026-08-30',
+        ])
+        ->assertInvalid(['contact_id']);
 });
 
 test('a user cannot view, edit, or delete another users loan', function () {
@@ -231,8 +260,10 @@ test('a user cannot view, edit, or delete another users loan', function () {
 test('the index direction filter never mixes given and taken loans', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create();
-    $given = Loan::factory()->for($user)->given()->create(['account_id' => $account->id, 'person_name' => 'Given Person']);
-    $taken = Loan::factory()->for($user)->taken()->create(['account_id' => $account->id, 'person_name' => 'Taken Person']);
+    $givenContact = Contact::factory()->for($user)->create(['name' => 'Given Person']);
+    $takenContact = Contact::factory()->for($user)->create(['name' => 'Taken Person']);
+    Loan::factory()->for($user)->given()->create(['account_id' => $account->id, 'contact_id' => $givenContact->id]);
+    Loan::factory()->for($user)->taken()->create(['account_id' => $account->id, 'contact_id' => $takenContact->id]);
 
     $this->actingAs($user)
         ->get(route('loans.index', ['direction' => 'given']))
@@ -240,14 +271,41 @@ test('the index direction filter never mixes given and taken loans', function ()
         ->assertInertia(fn ($page) => $page
             ->component('loans/index')
             ->where('direction', 'given')
-            ->has('loans.data', 1)
-            ->where('loans.data.0.id', $given->id));
+            ->has('contacts', 1)
+            ->where('contacts.0.id', $givenContact->id));
 
     $this->actingAs($user)
         ->get(route('loans.index', ['direction' => 'taken']))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->where('direction', 'taken')
-            ->has('loans.data', 1)
-            ->where('loans.data.0.id', $taken->id));
+            ->has('contacts', 1)
+            ->where('contacts.0.id', $takenContact->id));
+});
+
+test('lending the same person twice combines into one total on the index', function () {
+    $user = User::factory()->create();
+    $account = Account::factory()->for($user)->create();
+    $contact = Contact::factory()->for($user)->create(['name' => 'Anamul']);
+    Loan::factory()->for($user)->given()->create(['account_id' => $account->id, 'contact_id' => $contact->id, 'amount' => 5000]);
+    Loan::factory()->for($user)->given()->create(['account_id' => $account->id, 'contact_id' => $contact->id, 'amount' => 3000]);
+
+    $this->actingAs($user)
+        ->get(route('loans.index', ['direction' => 'given']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('contacts', 1)
+            ->where('contacts.0.id', $contact->id)
+            ->where('contacts.0.loans_count', 2)
+            ->where("summaries.{$contact->id}.total_amount", '8000.00')
+            ->where("summaries.{$contact->id}.outstanding", '8000.00'));
+
+    $this->actingAs($user)
+        ->get(route('loans.contacts.show', ['contact' => $contact, 'direction' => 'given']))
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->component('loans/contact')
+            ->has('loans', 2)
+            ->where('summary.total_amount', '8000.00')
+            ->where('summary.outstanding', '8000.00'));
 });

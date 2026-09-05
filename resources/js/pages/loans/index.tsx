@@ -1,11 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { ChipSelect } from '@/components/finance/chip-select';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import loans from '@/routes/loans';
-import type { Loan, LoanProgress, LoanType, Paginated } from '@/types/finance';
+import type { Contact, ContactLoanSummary, LoanType } from '@/types/finance';
 
 const DIRECTION_OPTIONS = [
     { id: 'given', label: 'Given' },
@@ -13,13 +13,13 @@ const DIRECTION_OPTIONS = [
 ];
 
 export default function LoansIndex({
-    loans: paginated,
+    contacts,
     direction,
-    progress,
+    summaries,
 }: {
-    loans: Paginated<Loan>;
+    contacts: Contact[];
     direction: LoanType;
-    progress: Record<number, LoanProgress>;
+    summaries: Record<number, ContactLoanSummary>;
 }) {
     function changeDirection(value: string) {
         router.get(
@@ -27,14 +27,6 @@ export default function LoansIndex({
             {},
             { preserveState: true, preserveScroll: true },
         );
-    }
-
-    function destroy(loan: Loan) {
-        if (confirm('Delete this loan?')) {
-            router.delete(loans.destroy.url(loan.id), {
-                preserveScroll: true,
-            });
-        }
     }
 
     return (
@@ -61,7 +53,7 @@ export default function LoansIndex({
                     onChange={changeDirection}
                 />
 
-                {paginated.data.length === 0 ? (
+                {contacts.length === 0 ? (
                     <Card>
                         <CardContent className="text-muted-foreground py-10 text-center text-sm">
                             {direction === 'given'
@@ -75,86 +67,40 @@ export default function LoansIndex({
                     </Card>
                 ) : (
                     <div className="divide-y rounded-lg border">
-                        {paginated.data.map((loan) => {
-                            const loanProgress = progress[loan.id];
+                        {contacts.map((contact) => {
+                            const summary = summaries[contact.id];
 
                             return (
-                                <div
-                                    key={loan.id}
+                                <Link
+                                    key={contact.id}
+                                    href={loans.contacts.show(contact.id, {
+                                        query: { direction },
+                                    })}
                                     className="flex items-center justify-between gap-4 p-4"
                                 >
-                                    <Link
-                                        href={loans.show(loan.id)}
-                                        className="min-w-0 flex-1"
-                                    >
+                                    <div className="min-w-0 flex-1">
                                         <p className="font-medium">
-                                            {loan.person_name}
-                                            <span className="text-muted-foreground ml-2 text-xs">
-                                                {loan.account?.name}
-                                            </span>
+                                            {contact.name}
                                         </p>
                                         <p className="text-muted-foreground text-sm">
-                                            {loan.loan_date}
-                                            {loan.note && ` · ${loan.note}`}
+                                            {contact.loans_count}{' '}
+                                            {contact.loans_count === 1
+                                                ? 'loan'
+                                                : 'loans'}
                                         </p>
-                                    </Link>
-                                    <div className="flex items-center gap-2">
-                                        <div className="text-right">
-                                            <p className="font-semibold">
-                                                ৳
-                                                {loanProgress?.outstanding ??
-                                                    loan.amount}
-                                            </p>
-                                            <p className="text-muted-foreground text-xs">
-                                                outstanding
-                                            </p>
-                                        </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => destroy(loan)}
-                                        >
-                                            <Trash2 />
-                                        </Button>
                                     </div>
-                                </div>
+                                    <div className="text-right">
+                                        <p className="font-semibold">
+                                            ৳{summary?.outstanding}
+                                        </p>
+                                        <p className="text-muted-foreground text-xs">
+                                            outstanding of ৳
+                                            {summary?.total_amount}
+                                        </p>
+                                    </div>
+                                </Link>
                             );
                         })}
-                    </div>
-                )}
-
-                {paginated.last_page > 1 && (
-                    <div className="flex flex-wrap gap-1">
-                        {paginated.links.map((link, index) =>
-                            link.url ? (
-                                <Button
-                                    key={index}
-                                    variant={
-                                        link.active ? 'default' : 'outline'
-                                    }
-                                    size="sm"
-                                    asChild
-                                >
-                                    <Link
-                                        href={link.url}
-                                        preserveScroll
-                                        dangerouslySetInnerHTML={{
-                                            __html: link.label,
-                                        }}
-                                    />
-                                </Button>
-                            ) : (
-                                <Button
-                                    key={index}
-                                    variant="outline"
-                                    size="sm"
-                                    disabled
-                                    dangerouslySetInnerHTML={{
-                                        __html: link.label,
-                                    }}
-                                />
-                            ),
-                        )}
                     </div>
                 )}
             </div>

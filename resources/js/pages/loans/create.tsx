@@ -2,16 +2,16 @@ import { Head, useForm } from '@inertiajs/react';
 import { AccountPicker } from '@/components/finance/account-picker';
 import { AmountDisplay } from '@/components/finance/amount-display';
 import { ChipSelect } from '@/components/finance/chip-select';
+import { ContactPicker } from '@/components/finance/contact-picker';
 import { DateField } from '@/components/finance/date-field';
 import { NoteButton } from '@/components/finance/note-button';
 import { NumericKeypad } from '@/components/finance/numeric-keypad';
 import { ReceiptPicker } from '@/components/finance/receipt-picker';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import loans from '@/routes/loans';
-import type { Account, LoanType } from '@/types/finance';
+import type { Account, Contact, LoanType } from '@/types/finance';
 
 const DIRECTION_OPTIONS = [
     { id: 'given', label: 'Given' },
@@ -20,14 +20,18 @@ const DIRECTION_OPTIONS = [
 
 export default function LoansCreate({
     accounts,
+    contacts,
     direction,
+    preselectedContactId,
 }: {
     accounts: Account[];
+    contacts: Contact[];
     direction: LoanType;
+    preselectedContactId: number | null;
 }) {
     const form = useForm<{
         type: LoanType;
-        person_name: string;
+        contact_id: string;
         amount: string;
         account_id: string;
         loan_date: string;
@@ -36,7 +40,7 @@ export default function LoansCreate({
         photos: File[];
     }>({
         type: direction,
-        person_name: '',
+        contact_id: preselectedContactId ? String(preselectedContactId) : '',
         amount: '',
         account_id: '',
         loan_date: new Date().toISOString().slice(0, 10),
@@ -69,18 +73,17 @@ export default function LoansCreate({
                 </div>
 
                 <div className="grid gap-1">
-                    <Label htmlFor="person_name" className="text-xs">
+                    <Label className="text-xs">
                         {isGiven ? 'Given to' : 'Borrowed from'}
                     </Label>
-                    <Input
-                        id="person_name"
-                        value={form.data.person_name}
-                        onChange={(e) =>
-                            form.setData('person_name', e.target.value)
+                    <ContactPicker
+                        contacts={contacts}
+                        value={form.data.contact_id}
+                        onChange={(value) =>
+                            form.setData('contact_id', value)
                         }
-                        placeholder="e.g. Anamul"
                     />
-                    <InputError message={form.errors.person_name} />
+                    <InputError message={form.errors.contact_id} />
                 </div>
 
                 <AmountDisplay value={form.data.amount} />

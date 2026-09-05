@@ -6,6 +6,7 @@ use App\Enums\CategoryStatus;
 use App\Enums\LoanType;
 use App\Http\Requests\Finance\StoreLoanRequest;
 use App\Http\Requests\Finance\UpdateLoanRequest;
+use App\Models\Contact;
 use App\Models\Loan;
 use App\Models\LoanRepayment;
 use App\Models\LoanTransfer;
@@ -27,27 +28,30 @@ class LoanController extends Controller
     ) {}
 
     /**
-     * Display a listing of the user's loans for the given direction
-     * (given/taken), most recent first.
+     * Display the user's contacts for the given direction (given/taken),
+     * each with its combined total and outstanding balance across every
+     * loan they have - so lending the same person 5k then 3k shows as one
+     * 8k entry, not two unrelated ones.
      */
     public function index(Request $request): Response
     {
         $direction = LoanType::tryFrom((string) $request->query('direction')) ?? LoanType::Given;
 
-        $loans = $request->user()->loans()
-            ->where('type', $direction)
-            ->with('account')
-            ->orderByDesc('loan_date')
-            ->orderByDesc('id')
-            ->paginate(20)
-            ->withQueryString();
+        $contacts = $request->user()->contacts()
+            ->whereHas('loans', fn ($query) => $query->where('type', $direction))
+            ->withCount(['loans as loans_count' => fn ($query) => $query->where('type', $direction)])
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('loans/index', [
-            'loans' => $loans,
+            'contacts' => $contacts,
             'direction' => $direction->value,
-            'progress' => collect($loans->items())->mapWithKeys(
-                fn (Loan $loan) => [$loan->id => $this->loanCalculator->progress($loan)->toArray()],
-            ),
+            'summaries' => $contacts->mapWithKeys(fn (Contact $contact) => [
+                $contact->id => [
+                    'total_amount' => $this->loanCalculator->contactTotal($contact, $direction)->toDecimalString(),
+                    'outstanding' => $this->loanCalculator->contactOutstanding($contact, $direction)->toDecimalString(),
+                ],
+            ]),
         ]);
     }
 
@@ -58,9 +62,43 @@ class LoanController extends Controller
     {
         $direction = LoanType::tryFrom((string) $request->query('direction')) ?? LoanType::Given;
 
+        $preselectedContact = $request->user()->contacts()
+            ->find($request->integer('contact_id'));
+
         return Inertia::render('loans/create', [
             ...$this->formOptions($request),
             'direction' => $direction->value,
+            'preselectedContactId' => $preselectedContact?->id,
+        ]);
+    }
+
+    /**
+     * Display one contact's individual loans of the given direction, with
+     * their combined total/outstanding balance.
+     */
+    #[Authorize('view', 'contact')]
+    public function contact(Request $request, Contact $contact): Response
+    {
+        $direction = LoanType::tryFrom((string) $request->query('direction')) ?? LoanType::Given;
+
+        $loans = $contact->loans()
+            ->where('type', $direction)
+            ->with('account')
+            ->orderByDesc('loan_date')
+            ->orderByDesc('id')
+            ->get();
+
+        return Inertia::render('loans/contact', [
+            'contact' => $contact,
+            'direction' => $direction->value,
+            'loans' => $loans,
+            'progress' => $loans->mapWithKeys(
+                fn (Loan $loan) => [$loan->id => $this->loanCalculator->progress($loan)->toArray()],
+            ),
+            'summary' => [
+                'total_amount' => $this->loanCalculator->contactTotal($contact, $direction)->toDecimalString(),
+                'outstanding' => $this->loanCalculator->contactOutstanding($contact, $direction)->toDecimalString(),
+            ],
         ]);
     }
 
@@ -86,7 +124,7 @@ class LoanController extends Controller
     #[Authorize('view', 'loan')]
     public function show(Loan $loan): Response
     {
-        $loan->load('account', 'attachments');
+        $loan->load('account', 'contact', 'attachments');
 
         return Inertia::render('loans/show', [
             'loan' => $loan,
@@ -103,7 +141,7 @@ class LoanController extends Controller
     {
         return Inertia::render('loans/edit', [
             ...$this->formOptions($request),
-            'loan' => $loan->load('attachments'),
+            'loan' => $loan->load('contact', 'attachments'),
         ]);
     }
 
@@ -149,6 +187,7 @@ class LoanController extends Controller
                 ->where('status', CategoryStatus::Active)
                 ->orderBy('name')
                 ->get(),
+            'contacts' => $request->user()->contacts()->orderBy('name')->get(),
         ];
     }
 

@@ -27,7 +27,7 @@ class LoanRepaymentController extends Controller
     {
         return Inertia::render('loans/repayments/create', [
             ...$this->formOptions($request, $loan),
-            'loan' => $loan,
+            'loan' => $loan->load('contact'),
         ]);
     }
 
@@ -53,7 +53,7 @@ class LoanRepaymentController extends Controller
         return Inertia::render('loans/repayments/edit', [
             ...$this->formOptions($request, $repayment->loan),
             'repayment' => $repayment,
-            'loan' => $repayment->loan,
+            'loan' => $repayment->loan->load('contact'),
         ]);
     }
 

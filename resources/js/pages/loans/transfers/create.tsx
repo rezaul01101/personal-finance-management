@@ -42,7 +42,7 @@ export default function LoanTransfersCreate({
 
             <div className="mx-auto flex min-h-[calc(100dvh-8rem)] max-w-lg flex-col justify-between gap-2 p-3 md:min-h-[calc(100dvh-4rem)]">
                 <Heading
-                    title={`Transfer from ${loan.person_name}`}
+                    title={`Transfer from ${loan.contact.name}`}
                     description={`Available to transfer: ৳${heldBalance}`}
                 />
 
@@ -109,7 +109,7 @@ export default function LoanTransfersCreate({
 LoanTransfersCreate.layout = (props: { loan: Loan }) => ({
     breadcrumbs: [
         { title: 'Loans', href: loans.index() },
-        { title: props.loan.person_name, href: loans.show(props.loan.id) },
+        { title: props.loan.contact.name, href: loans.show(props.loan.id) },
         {
             title: 'Transfer to Account',
             href: loanTransfers.create(props.loan.id),
