@@ -57,7 +57,7 @@ export function RichTextEditor({
     placeholder?: string;
 }) {
     const ref = useRef<HTMLDivElement>(null);
-    const lastValue = useRef(value);
+    const lastValue = useRef<string | null>(null);
     const [colorPicker, setColorPicker] = useState<ColorPickerMode>(null);
 
     useEffect(() => {
