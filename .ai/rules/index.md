@@ -5,3 +5,4 @@ Before planning or editing, find the row whose globs match the file's path and r
 | Applies to | Rule file |
 | --- | --- |
 | resources/js/actions/**,resources/js/routes/** | .ai/rules/routes.md |
+| tests/**,phpunit.xml | .ai/rules/testing-environment.md |
