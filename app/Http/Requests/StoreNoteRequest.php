@@ -2,11 +2,14 @@
 
 namespace App\Http\Requests;
 
+use App\Concerns\SanitizesNoteHtml;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreNoteRequest extends FormRequest
 {
+    use SanitizesNoteHtml;
+
     /**
      * Prepare the data for validation.
      */
@@ -14,7 +17,7 @@ class StoreNoteRequest extends FormRequest
     {
         $this->merge([
             'title' => $this->filled('title') ? trim((string) $this->input('title')) : null,
-            'description' => $this->filled('description') ? trim((string) $this->input('description')) : null,
+            'description' => $this->sanitizeNoteHtml($this->input('description')),
         ]);
     }
 
@@ -27,7 +30,7 @@ class StoreNoteRequest extends FormRequest
     {
         return [
             'title' => ['nullable', 'string', 'max:150', 'required_without:description'],
-            'description' => ['nullable', 'string', 'max:5000', 'required_without:title'],
+            'description' => ['nullable', 'string', 'max:10000', 'required_without:title'],
         ];
     }
 }

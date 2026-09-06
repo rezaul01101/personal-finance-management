@@ -89,6 +89,70 @@ test('a note can be deleted', function () {
     $this->assertDatabaseMissing('notes', ['id' => $note->id]);
 });
 
+test('note formatting - bold, lists, and safe colors are preserved', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->postJson(route('notes.store'), [
+        'description' => '<b>Bold</b> <ul><li>One</li><li>Two</li></ul> <span style="color: #dc2626; background-color: #fef08a;">Colored</span>',
+    ]);
+
+    $response->assertCreated();
+    $note = Note::query()->where('user_id', $user->id)->firstOrFail();
+
+    expect($note->description)
+        ->toContain('<b>Bold</b>')
+        ->toContain('<ul><li>One</li><li>Two</li></ul>')
+        ->toContain('style="color: #dc2626; background-color: #fef08a"');
+});
+
+test('note formatting strips scripts, event handlers, and unknown tags', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->postJson(route('notes.store'), [
+        'description' => '<script>alert(1)</script><img src=x onerror="alert(1)"><p onclick="evil()">Hello <b onmouseover="evil()">world</b></p>',
+    ]);
+
+    $response->assertCreated();
+    $note = Note::query()->where('user_id', $user->id)->firstOrFail();
+
+    expect($note->description)
+        ->not->toContain('<script')
+        ->not->toContain('<img')
+        ->not->toContain('alert(1)')
+        ->not->toContain('onerror')
+        ->not->toContain('onclick')
+        ->not->toContain('onmouseover')
+        ->toContain('Hello')
+        ->toContain('<b>world</b>');
+});
+
+test('note formatting strips unsafe style values but keeps safe ones', function () {
+    $user = User::factory()->create();
+
+    $response = $this->actingAs($user)->postJson(route('notes.store'), [
+        'description' => '<span style="color: red; background-color: url(javascript:alert(1)); position: fixed;">x</span>',
+    ]);
+
+    $response->assertCreated();
+    $note = Note::query()->where('user_id', $user->id)->firstOrFail();
+
+    expect($note->description)
+        ->toContain('color: red')
+        ->not->toContain('url(')
+        ->not->toContain('position');
+});
+
+test('a note that sanitizes down to no visible content is treated as empty', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->postJson(route('notes.store'), [
+            'title' => '',
+            'description' => '<div><br></div>',
+        ])
+        ->assertInvalid(['title', 'description']);
+});
+
 test('a user cannot update or delete another users note', function () {
     $owner = User::factory()->create();
     $note = Note::factory()->for($owner)->create();

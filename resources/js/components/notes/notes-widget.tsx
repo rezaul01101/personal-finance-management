@@ -2,6 +2,7 @@ import { useHttp } from '@inertiajs/react';
 import { ArrowLeft, NotebookPen, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import InputError from '@/components/input-error';
+import { RichTextEditor } from '@/components/notes/rich-text-editor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -11,7 +12,6 @@ import {
     SheetTitle,
 } from '@/components/ui/sheet';
 import { Spinner } from '@/components/ui/spinner';
-import { Textarea } from '@/components/ui/textarea';
 import notes from '@/routes/notes';
 import type { Note } from '@/types/notes';
 
@@ -195,16 +195,15 @@ export function NotesWidget() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Textarea
+                                    <RichTextEditor
                                         value={http.data.description}
-                                        onChange={(e) =>
+                                        onChange={(html) =>
                                             http.setData(
                                                 'description',
-                                                e.target.value,
+                                                html,
                                             )
                                         }
                                         placeholder="Write a note..."
-                                        rows={10}
                                     />
                                     <InputError
                                         message={http.errors.description}
@@ -284,11 +283,12 @@ export function NotesWidget() {
                                                                         </p>
                                                                     )}
                                                                     {note.description && (
-                                                                        <p className="text-muted-foreground line-clamp-3 text-sm whitespace-pre-wrap">
-                                                                            {
-                                                                                note.description
-                                                                            }
-                                                                        </p>
+                                                                        <div
+                                                                            className="text-muted-foreground line-clamp-3 text-sm [&_ul]:list-disc [&_ul]:pl-5"
+                                                                            dangerouslySetInnerHTML={{
+                                                                                __html: note.description,
+                                                                            }}
+                                                                        />
                                                                     )}
                                                                 </button>
 
