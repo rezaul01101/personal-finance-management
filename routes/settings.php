@@ -28,6 +28,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('settings/backup', [BackupController::class, 'edit'])->name('backup.edit');
     Route::get('settings/backup/download', [BackupController::class, 'download'])->name('backup.download');
+    Route::post('settings/backup/import', [BackupController::class, 'import'])->name('backup.import');
 });
 
 Route::get('.well-known/passkey-endpoints', function () {
