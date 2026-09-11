@@ -26,6 +26,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('budgets', [MonthlyBudgetController::class, 'store'])->name('budgets.store');
 
     Route::resource('expenses', ExpenseController::class)->except(['show']);
+    Route::get('expenses/export/pdf', [ExpenseController::class, 'exportPdf'])->name('expenses.export.pdf');
     Route::delete('expenses/{expense}/attachments/{attachment}', [ExpenseAttachmentController::class, 'destroy'])
         ->name('expenses.attachments.destroy');
 
