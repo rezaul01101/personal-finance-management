@@ -1,7 +1,10 @@
 <?php
 
 use App\Enums\CategoryStatus;
+use App\Models\Account;
 use App\Models\BudgetCategory;
+use App\Models\Expense;
+use App\Models\ExpenseCategory;
 use App\Models\User;
 
 test('guests are redirected to the login page', function () {
@@ -91,6 +94,24 @@ test('a user can delete their own budget category', function () {
         ->assertRedirect(route('budget-categories.index'));
 
     $this->assertDatabaseMissing('budget_categories', ['id' => $category->id]);
+});
+
+test('a budget category with expenses recorded against it cannot be deleted', function () {
+    $user = User::factory()->create();
+    $category = BudgetCategory::factory()->for($user)->create();
+    $expenseCategory = ExpenseCategory::factory()->for($user)->create();
+    $account = Account::factory()->for($user)->create();
+    Expense::factory()->for($user)->create([
+        'expense_category_id' => $expenseCategory->id,
+        'budget_category_id' => $category->id,
+        'account_id' => $account->id,
+    ]);
+
+    $this->actingAs($user)
+        ->delete(route('budget-categories.destroy', $category))
+        ->assertRedirect(route('budget-categories.index'));
+
+    $this->assertDatabaseHas('budget_categories', ['id' => $category->id]);
 });
 
 test('a user cannot delete another users budget category', function () {

@@ -2,6 +2,7 @@
 
 use App\Enums\AccountType;
 use App\Models\Account;
+use App\Models\Income;
 use App\Models\User;
 
 test('guests are redirected to the login page', function () {
@@ -88,6 +89,18 @@ test('a user can delete their own account', function () {
         ->assertRedirect(route('accounts.index'));
 
     $this->assertDatabaseMissing('accounts', ['id' => $account->id]);
+});
+
+test('an account with transactions recorded against it cannot be deleted', function () {
+    $user = User::factory()->create();
+    $account = Account::factory()->for($user)->create();
+    Income::factory()->for($user)->create(['account_id' => $account->id]);
+
+    $this->actingAs($user)
+        ->delete(route('accounts.destroy', $account))
+        ->assertRedirect(route('accounts.index'));
+
+    $this->assertDatabaseHas('accounts', ['id' => $account->id]);
 });
 
 test('a user cannot delete another users account', function () {

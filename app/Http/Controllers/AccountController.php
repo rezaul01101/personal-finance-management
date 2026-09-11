@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Finance\StoreAccountRequest;
 use App\Http\Requests\Finance\UpdateAccountRequest;
 use App\Models\Account;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
@@ -49,12 +50,18 @@ class AccountController extends Controller
     }
 
     /**
-     * Remove the account.
+     * Remove the account, unless transactions still reference it.
      */
     #[Authorize('delete', 'account')]
     public function destroy(Account $account): RedirectResponse
     {
-        $account->delete();
+        try {
+            $account->delete();
+        } catch (QueryException) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => __('This account has transactions recorded against it and cannot be deleted. Archive it instead.')]);
+
+            return to_route('accounts.index');
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Account deleted.')]);
 

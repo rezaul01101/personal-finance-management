@@ -11,6 +11,7 @@ use App\Services\Finance\BudgetCalculator;
 use App\Services\Finance\BudgetMath;
 use App\Services\Finance\Money;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
@@ -173,12 +174,18 @@ class BudgetCategoryController extends Controller
     }
 
     /**
-     * Remove the budget category.
+     * Remove the budget category, unless expenses still reference it.
      */
     #[Authorize('delete', 'budget_category')]
     public function destroy(BudgetCategory $budgetCategory): RedirectResponse
     {
-        $budgetCategory->delete();
+        try {
+            $budgetCategory->delete();
+        } catch (QueryException) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => __('This category has expenses recorded against it and cannot be deleted. Archive it instead.')]);
+
+            return to_route('budget-categories.index');
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Budget category deleted.')]);
 

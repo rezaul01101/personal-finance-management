@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Finance\StoreExpenseCategoryRequest;
 use App\Http\Requests\Finance\UpdateExpenseCategoryRequest;
 use App\Models\ExpenseCategory;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Attributes\Controllers\Authorize;
@@ -49,12 +50,18 @@ class ExpenseCategoryController extends Controller
     }
 
     /**
-     * Remove the expense category.
+     * Remove the expense category, unless expenses still reference it.
      */
     #[Authorize('delete', 'expense_category')]
     public function destroy(ExpenseCategory $expenseCategory): RedirectResponse
     {
-        $expenseCategory->delete();
+        try {
+            $expenseCategory->delete();
+        } catch (QueryException) {
+            Inertia::flash('toast', ['type' => 'error', 'message' => __('This category has expenses recorded against it and cannot be deleted. Archive it instead.')]);
+
+            return to_route('expense-categories.index');
+        }
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Expense category deleted.')]);
 
