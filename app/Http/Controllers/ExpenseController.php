@@ -212,7 +212,7 @@ class ExpenseController extends Controller
     }
 
     /**
-     * Remove the expense, reversing its account balance effect.
+     * Remove the expense.
      */
     #[Authorize('delete', 'expense')]
     public function destroy(Expense $expense): RedirectResponse

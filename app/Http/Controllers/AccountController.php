@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Finance\StoreAccountRequest;
 use App\Http\Requests\Finance\UpdateAccountRequest;
 use App\Models\Account;
+use App\Services\Finance\AccountCalculator;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,13 +15,20 @@ use Inertia\Response;
 
 class AccountController extends Controller
 {
+    public function __construct(private readonly AccountCalculator $accountCalculator) {}
+
     /**
-     * Display a listing of the user's accounts.
+     * Display a listing of the user's accounts with their live balances.
      */
     public function index(Request $request): Response
     {
+        $accounts = $request->user()->accounts()->orderBy('name')->get();
+
         return Inertia::render('accounts/index', [
-            'accounts' => $request->user()->accounts()->orderBy('name')->get(),
+            'accounts' => $accounts,
+            'summaries' => $accounts->mapWithKeys(
+                fn (Account $account) => [$account->id => $this->accountCalculator->summarize($account)->toArray()],
+            ),
         ]);
     }
 

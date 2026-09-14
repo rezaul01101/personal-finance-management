@@ -55,4 +55,60 @@ class Account extends Model
     {
         return $this->hasMany(Expense::class);
     }
+
+    /**
+     * @return HasMany<Income, $this>
+     */
+    public function incomes(): HasMany
+    {
+        return $this->hasMany(Income::class);
+    }
+
+    /**
+     * @return HasMany<AccountTransfer, $this>
+     */
+    public function outgoingTransfers(): HasMany
+    {
+        return $this->hasMany(AccountTransfer::class, 'from_account_id');
+    }
+
+    /**
+     * @return HasMany<AccountTransfer, $this>
+     */
+    public function incomingTransfers(): HasMany
+    {
+        return $this->hasMany(AccountTransfer::class, 'to_account_id');
+    }
+
+    /**
+     * @return HasMany<Loan, $this>
+     */
+    public function loans(): HasMany
+    {
+        return $this->hasMany(Loan::class);
+    }
+
+    /**
+     * @return HasMany<LoanRepayment, $this>
+     */
+    public function loanRepayments(): HasMany
+    {
+        return $this->hasMany(LoanRepayment::class);
+    }
+
+    /**
+     * @return HasMany<LoanTransfer, $this>
+     */
+    public function loanTransfers(): HasMany
+    {
+        return $this->hasMany(LoanTransfer::class);
+    }
+
+    /**
+     * @return HasMany<SavingsTransaction, $this>
+     */
+    public function savingsTransactions(): HasMany
+    {
+        return $this->hasMany(SavingsTransaction::class);
+    }
 }

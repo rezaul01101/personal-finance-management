@@ -21,6 +21,14 @@ export interface Account {
     status: CategoryStatus;
 }
 
+export interface AccountSummary {
+    account_id: number;
+    opening_balance: string;
+    total_credits: string;
+    total_debits: string;
+    current_balance: string;
+}
+
 export interface Contact {
     id: number;
     name: string;

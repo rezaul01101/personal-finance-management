@@ -163,7 +163,7 @@ class LoanController extends Controller
     }
 
     /**
-     * Remove the loan, reversing its account balance effect.
+     * Remove the loan.
      */
     #[Authorize('delete', 'loan')]
     public function destroy(Loan $loan): RedirectResponse

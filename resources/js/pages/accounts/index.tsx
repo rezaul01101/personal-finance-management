@@ -1,6 +1,7 @@
 import { Head, router, useForm } from '@inertiajs/react';
 import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import { AmountDisplay } from '@/components/finance/amount-display';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,7 +24,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import accounts from '@/routes/accounts';
-import type { Account, AccountType } from '@/types/finance';
+import type { Account, AccountSummary, AccountType } from '@/types/finance';
 
 const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
     cash: 'Cash',
@@ -35,8 +36,10 @@ const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
 
 export default function AccountsIndex({
     accounts: items,
+    summaries,
 }: {
     accounts: Account[];
+    summaries: Record<number, AccountSummary>;
 }) {
     const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState<Account | null>(null);
@@ -249,39 +252,87 @@ export default function AccountsIndex({
                     </Card>
                 ) : (
                     <div className="grid gap-3 sm:grid-cols-2">
-                        {items.map((account) => (
-                            <Card key={account.id}>
-                                <CardHeader className="flex-row items-start justify-between">
-                                    <div>
-                                        <CardTitle>{account.name}</CardTitle>
-                                        <p className="text-muted-foreground mt-1 text-sm">
-                                            {ACCOUNT_TYPE_LABELS[account.type]}
-                                            {account.status === 'archived' &&
-                                                ' · Archived'}
-                                        </p>
-                                    </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => destroy(account)}
-                                    >
-                                        <Trash2 />
-                                    </Button>
-                                </CardHeader>
-                                <CardContent>
-                                    <p className="text-2xl font-semibold">
-                                        ৳{account.balance}
-                                    </p>
-                                    <Button
-                                        variant="link"
-                                        className="h-auto p-0"
-                                        onClick={() => openEdit(account)}
-                                    >
-                                        Edit
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        ))}
+                        {items.map((account) => {
+                            const summary = summaries[account.id];
+
+                            return (
+                                <Card key={account.id}>
+                                    <CardHeader className="flex-row items-start justify-between">
+                                        <div>
+                                            <CardTitle>
+                                                {account.name}
+                                            </CardTitle>
+                                            <p className="text-muted-foreground mt-1 text-sm">
+                                                {
+                                                    ACCOUNT_TYPE_LABELS[
+                                                        account.type
+                                                    ]
+                                                }
+                                                {account.status ===
+                                                    'archived' &&
+                                                    ' · Archived'}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => destroy(account)}
+                                        >
+                                            <Trash2 />
+                                        </Button>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        {summary && (
+                                            <>
+                                                <div className="space-y-1">
+                                                    <p className="text-muted-foreground text-xs">
+                                                        Current balance
+                                                    </p>
+                                                    <AmountDisplay
+                                                        value={
+                                                            summary.current_balance
+                                                        }
+                                                    />
+                                                </div>
+                                                <p className="text-muted-foreground text-xs">
+                                                    Opening balance: ৳
+                                                    {summary.opening_balance}
+                                                </p>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-1">
+                                                        <p className="text-muted-foreground text-xs">
+                                                            Credits
+                                                        </p>
+                                                        <AmountDisplay
+                                                            value={
+                                                                summary.total_credits
+                                                            }
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <p className="text-muted-foreground text-xs">
+                                                            Debits
+                                                        </p>
+                                                        <AmountDisplay
+                                                            value={
+                                                                summary.total_debits
+                                                            }
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                        <Button
+                                            variant="link"
+                                            className="h-auto p-0"
+                                            onClick={() => openEdit(account)}
+                                        >
+                                            Edit
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            );
+                        })}
                     </div>
                 )}
             </div>

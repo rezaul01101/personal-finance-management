@@ -3,7 +3,6 @@
 namespace App\Services\Finance;
 
 use App\Enums\LoanType;
-use App\Models\Account;
 use App\Models\Loan;
 use App\Models\LoanRepayment;
 use App\Models\User;
@@ -21,7 +20,6 @@ use Illuminate\Support\Facades\DB;
 final class LoanRepaymentService
 {
     public function __construct(
-        private readonly AccountBalanceService $accountBalance,
         private readonly LoanCalculator $loanCalculator,
     ) {}
 
@@ -42,10 +40,6 @@ final class LoanRepaymentService
 
             $this->loanCalculator->assertOutstandingNotNegative($loan);
 
-            if ($loan->type === LoanType::Taken) {
-                $this->accountBalance->debit($repayment->account, Money::of($repayment->amount));
-            }
-
             return $repayment;
         });
     }
@@ -60,10 +54,6 @@ final class LoanRepaymentService
 
             if ($loan->type === LoanType::Given) {
                 $attributes['account_id'] = null;
-            } else {
-                $oldAccount = $repayment->account;
-                $oldAmount = Money::of($repayment->amount);
-                $this->accountBalance->credit($oldAccount, $oldAmount);
             }
 
             $repayment->update($attributes);
@@ -72,12 +62,6 @@ final class LoanRepaymentService
 
             if ($loan->type === LoanType::Given) {
                 $this->loanCalculator->assertHeldBalanceNotNegative($loan);
-            } else {
-                $newAccount = $repayment->account_id === $oldAccount->id
-                    ? $oldAccount
-                    : Account::query()->findOrFail($repayment->account_id);
-
-                $this->accountBalance->debit($newAccount, Money::of($repayment->amount));
             }
 
             return $repayment;
@@ -89,15 +73,11 @@ final class LoanRepaymentService
         DB::transaction(function () use ($repayment) {
             $loan = $repayment->loan;
             $type = $loan->type;
-            $account = $repayment->account;
-            $amount = Money::of($repayment->amount);
 
             $repayment->delete();
 
             if ($type === LoanType::Given) {
                 $this->loanCalculator->assertHeldBalanceNotNegative($loan);
-            } else {
-                $this->accountBalance->credit($account, $amount);
             }
         });
     }

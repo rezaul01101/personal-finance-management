@@ -80,7 +80,7 @@ class AccountTransferController extends Controller
     }
 
     /**
-     * Remove the transfer, reversing its account balance effects.
+     * Remove the transfer.
      */
     #[Authorize('delete', 'transfer')]
     public function destroy(AccountTransfer $transfer): RedirectResponse

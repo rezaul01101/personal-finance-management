@@ -5,6 +5,7 @@ use App\Models\BudgetCategory;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\User;
+use App\Services\Finance\AccountCalculator;
 
 function makeExpenseContext(User $user): array
 {
@@ -19,7 +20,7 @@ test('guests are redirected to the login page', function () {
     $this->get(route('expenses.index'))->assertRedirect(route('login'));
 });
 
-test('creating an expense debits the account balance', function () {
+test('creating an expense does not change the account balance, but debits the computed current balance', function () {
     $user = User::factory()->create();
     ['expenseCategory' => $expenseCategory, 'budgetCategory' => $budgetCategory, 'account' => $account] = makeExpenseContext($user);
 
@@ -40,10 +41,11 @@ test('creating an expense debits the account balance', function () {
         'note' => 'Lunch',
     ]);
 
-    expect($account->fresh()->balance)->toBe('8000.00');
+    expect($account->fresh()->balance)->toBe('10000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('8000.00');
 });
 
-test('editing an expense reverses the old amount and applies the new one', function () {
+test('editing an expense does not change the account balance, but the computed current balance reflects the new amount', function () {
     $user = User::factory()->create();
     ['expenseCategory' => $expenseCategory, 'budgetCategory' => $budgetCategory, 'account' => $account] = makeExpenseContext($user);
 
@@ -53,8 +55,6 @@ test('editing an expense reverses the old amount and applies the new one', funct
         'account_id' => $account->id,
         'amount' => 1000,
     ]);
-    // Simulate the debit that would have happened when the expense was created.
-    $account->forceFill(['balance' => 9000])->save();
 
     $this->actingAs($user)
         ->put(route('expenses.update', $expense), [
@@ -68,10 +68,11 @@ test('editing an expense reverses the old amount and applies the new one', funct
         ->assertRedirect(route('expenses.index'));
 
     expect($expense->fresh()->amount)->toBe('1500.00')
-        ->and($account->fresh()->balance)->toBe('8500.00');
+        ->and($account->fresh()->balance)->toBe('10000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('8500.00');
 });
 
-test('editing an expense to move it to a different account reverses the old account and debits the new one', function () {
+test('editing an expense to move it to a different account does not change either account balance, but debits the new account and credits the old one in the computed totals', function () {
     $user = User::factory()->create();
     ['expenseCategory' => $expenseCategory, 'budgetCategory' => $budgetCategory, 'account' => $oldAccount] = makeExpenseContext($user);
     $newAccount = Account::factory()->for($user)->create(['balance' => 5000]);
@@ -82,7 +83,6 @@ test('editing an expense to move it to a different account reverses the old acco
         'account_id' => $oldAccount->id,
         'amount' => 1000,
     ]);
-    $oldAccount->forceFill(['balance' => 9000])->save();
 
     $this->actingAs($user)->put(route('expenses.update', $expense), [
         'amount' => '1000',
@@ -93,11 +93,15 @@ test('editing an expense to move it to a different account reverses the old acco
         'note' => null,
     ]);
 
+    $calculator = app(AccountCalculator::class);
+
     expect($oldAccount->fresh()->balance)->toBe('10000.00')
-        ->and($newAccount->fresh()->balance)->toBe('4000.00');
+        ->and($newAccount->fresh()->balance)->toBe('5000.00')
+        ->and($calculator->currentBalance($oldAccount->fresh())->toDecimalString())->toBe('10000.00')
+        ->and($calculator->currentBalance($newAccount->fresh())->toDecimalString())->toBe('4000.00');
 });
 
-test('deleting an expense restores the account balance', function () {
+test('deleting an expense does not change the account balance, and it stops affecting the computed current balance', function () {
     $user = User::factory()->create();
     ['expenseCategory' => $expenseCategory, 'budgetCategory' => $budgetCategory, 'account' => $account] = makeExpenseContext($user);
 
@@ -107,14 +111,14 @@ test('deleting an expense restores the account balance', function () {
         'account_id' => $account->id,
         'amount' => 1000,
     ]);
-    $account->forceFill(['balance' => 9000])->save();
 
     $this->actingAs($user)
         ->delete(route('expenses.destroy', $expense))
         ->assertRedirect(route('expenses.index'));
 
     $this->assertDatabaseMissing('expenses', ['id' => $expense->id]);
-    expect($account->fresh()->balance)->toBe('10000.00');
+    expect($account->fresh()->balance)->toBe('10000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('10000.00');
 });
 
 test('an expense can be created that exceeds the accounts remaining budget - budgets are a soft limit', function () {

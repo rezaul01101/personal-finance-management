@@ -11,7 +11,8 @@ test('guests are redirected to the login page', function () {
 
 test('a user can view their own accounts', function () {
     $user = User::factory()->create();
-    $account = Account::factory()->for($user)->create();
+    $account = Account::factory()->for($user)->create(['balance' => '1000.00']);
+    Income::factory()->for($user)->create(['account_id' => $account->id, 'amount' => '500.00']);
 
     $this->actingAs($user)
         ->get(route('accounts.index'))
@@ -19,7 +20,11 @@ test('a user can view their own accounts', function () {
         ->assertInertia(fn ($page) => $page
             ->component('accounts/index')
             ->has('accounts', 1)
-            ->where('accounts.0.id', $account->id));
+            ->where('accounts.0.id', $account->id)
+            ->where("summaries.{$account->id}.opening_balance", '1000.00')
+            ->where("summaries.{$account->id}.total_credits", '500.00')
+            ->where("summaries.{$account->id}.total_debits", '0.00')
+            ->where("summaries.{$account->id}.current_balance", '1500.00'));
 });
 
 test('a user can create an account', function () {

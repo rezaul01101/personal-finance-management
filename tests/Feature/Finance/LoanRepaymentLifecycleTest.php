@@ -5,6 +5,7 @@ use App\Models\Loan;
 use App\Models\LoanRepayment;
 use App\Models\LoanTransfer;
 use App\Models\User;
+use App\Services\Finance\AccountCalculator;
 
 test('guests are redirected to the login page', function () {
     $user = User::factory()->create();
@@ -50,7 +51,7 @@ test('a repayment on a loan given still credits nothing even if an account_id is
     expect($account->fresh()->balance)->toBe('5000.00');
 });
 
-test('a repayment on a loan taken immediately debits the chosen account', function () {
+test('a repayment on a loan taken does not change the account balance, but immediately debits the computed current balance', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create(['balance' => 5000]);
     $loan = Loan::factory()->for($user)->taken()->create(['account_id' => $account->id, 'amount' => 20000]);
@@ -63,7 +64,8 @@ test('a repayment on a loan taken immediately debits the chosen account', functi
         ])
         ->assertRedirect(route('loans.show', $loan));
 
-    expect($account->fresh()->balance)->toBe('0.00');
+    expect($account->fresh()->balance)->toBe('5000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('20000.00');
 });
 
 test('account_id is required when repaying a loan taken', function () {
@@ -92,7 +94,7 @@ test('a repayment cannot exceed the loan outstanding balance', function () {
         ->assertInvalid(['amount']);
 });
 
-test('editing a repayment on a loan taken reverses the old account effect and reapplies the new one', function () {
+test('editing a repayment on a loan taken does not change the account balance, but the computed current balance reflects the new amount', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create(['balance' => 10000]);
     $loan = Loan::factory()->for($user)->taken()->create(['account_id' => $account->id, 'amount' => 20000]);
@@ -101,8 +103,6 @@ test('editing a repayment on a loan taken reverses the old account effect and re
         'account_id' => $account->id,
         'amount' => 2000,
     ]);
-    // Simulate the debit that would have happened when the repayment was created.
-    $account->forceFill(['balance' => 8000])->save();
 
     $this->actingAs($user)
         ->put(route('repayments.update', $repayment), [
@@ -113,7 +113,8 @@ test('editing a repayment on a loan taken reverses the old account effect and re
         ->assertRedirect(route('loans.show', $loan));
 
     expect($repayment->fresh()->amount)->toBe('3000.00')
-        ->and($account->fresh()->balance)->toBe('7000.00');
+        ->and($account->fresh()->balance)->toBe('10000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('27000.00');
 });
 
 test('editing a repayment above the outstanding balance excluding itself is rejected', function () {
@@ -134,7 +135,7 @@ test('editing a repayment above the outstanding balance excluding itself is reje
         ->assertInvalid(['amount']);
 });
 
-test('deleting a repayment on a loan taken credits the account back', function () {
+test('deleting a repayment on a loan taken does not change the account balance, and it stops affecting the computed current balance', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create(['balance' => 10000]);
     $loan = Loan::factory()->for($user)->taken()->create(['account_id' => $account->id, 'amount' => 20000]);
@@ -143,14 +144,14 @@ test('deleting a repayment on a loan taken credits the account back', function (
         'account_id' => $account->id,
         'amount' => 1000,
     ]);
-    $account->forceFill(['balance' => 9000])->save();
 
     $this->actingAs($user)
         ->delete(route('repayments.destroy', $repayment))
         ->assertRedirect(route('loans.show', $loan));
 
     $this->assertDatabaseMissing('loan_repayments', ['id' => $repayment->id]);
-    expect($account->fresh()->balance)->toBe('10000.00');
+    expect($account->fresh()->balance)->toBe('10000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('30000.00');
 });
 
 test('deleting a repayment on a loan given is rejected if a transfer already relies on it', function () {

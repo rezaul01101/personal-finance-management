@@ -2,7 +2,6 @@
 
 namespace App\Services\Finance;
 
-use App\Models\Account;
 use App\Models\Loan;
 use App\Models\LoanTransfer;
 use App\Models\User;
@@ -17,7 +16,6 @@ use Illuminate\Support\Facades\DB;
 final class LoanTransferService
 {
     public function __construct(
-        private readonly AccountBalanceService $accountBalance,
         private readonly LoanCalculator $loanCalculator,
     ) {}
 
@@ -34,8 +32,6 @@ final class LoanTransferService
 
             $this->loanCalculator->assertHeldBalanceNotNegative($loan);
 
-            $this->accountBalance->credit($transfer->account, Money::of($transfer->amount));
-
             return $transfer;
         });
     }
@@ -47,20 +43,10 @@ final class LoanTransferService
     {
         return DB::transaction(function () use ($transfer, $attributes) {
             $loan = $transfer->loan;
-            $oldAccount = $transfer->account;
-            $oldAmount = Money::of($transfer->amount);
-
-            $this->accountBalance->debit($oldAccount, $oldAmount);
 
             $transfer->update($attributes);
 
             $this->loanCalculator->assertHeldBalanceNotNegative($loan);
-
-            $newAccount = $transfer->account_id === $oldAccount->id
-                ? $oldAccount
-                : Account::query()->findOrFail($transfer->account_id);
-
-            $this->accountBalance->credit($newAccount, Money::of($transfer->amount));
 
             return $transfer;
         });
@@ -69,8 +55,6 @@ final class LoanTransferService
     public function delete(LoanTransfer $transfer): void
     {
         DB::transaction(function () use ($transfer) {
-            $this->accountBalance->debit($transfer->account, Money::of($transfer->amount));
-
             $transfer->delete();
         });
     }

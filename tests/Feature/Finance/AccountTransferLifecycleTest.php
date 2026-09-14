@@ -3,12 +3,13 @@
 use App\Models\Account;
 use App\Models\AccountTransfer;
 use App\Models\User;
+use App\Services\Finance\AccountCalculator;
 
 test('guests are redirected to the login page', function () {
     $this->get(route('transfers.index'))->assertRedirect(route('login'));
 });
 
-test('creating a transfer debits the source account and credits the destination account', function () {
+test('creating a transfer does not change either account balance, but debits the source and credits the destination in the computed totals', function () {
     $user = User::factory()->create();
     $bank = Account::factory()->for($user)->create(['balance' => 50000]);
     $bkash = Account::factory()->for($user)->create(['balance' => 0]);
@@ -29,11 +30,15 @@ test('creating a transfer debits the source account and credits the destination 
         'note' => 'Move to mobile wallet',
     ]);
 
-    expect($bank->fresh()->balance)->toBe('40000.00')
-        ->and($bkash->fresh()->balance)->toBe('10000.00');
+    $calculator = app(AccountCalculator::class);
+
+    expect($bank->fresh()->balance)->toBe('50000.00')
+        ->and($bkash->fresh()->balance)->toBe('0.00')
+        ->and($calculator->currentBalance($bank->fresh())->toDecimalString())->toBe('40000.00')
+        ->and($calculator->currentBalance($bkash->fresh())->toDecimalString())->toBe('10000.00');
 });
 
-test('editing a transfer reverses the old amount and applies the new one', function () {
+test('editing a transfer does not change either account balance, but the computed totals reflect the new amount', function () {
     $user = User::factory()->create();
     $bank = Account::factory()->for($user)->create(['balance' => 40000]);
     $bkash = Account::factory()->for($user)->create(['balance' => 10000]);
@@ -54,12 +59,16 @@ test('editing a transfer reverses the old amount and applies the new one', funct
         ])
         ->assertRedirect(route('transfers.index'));
 
+    $calculator = app(AccountCalculator::class);
+
     expect($transfer->fresh()->amount)->toBe('15000.00')
-        ->and($bank->fresh()->balance)->toBe('35000.00')
-        ->and($bkash->fresh()->balance)->toBe('15000.00');
+        ->and($bank->fresh()->balance)->toBe('40000.00')
+        ->and($bkash->fresh()->balance)->toBe('10000.00')
+        ->and($calculator->currentBalance($bank->fresh())->toDecimalString())->toBe('25000.00')
+        ->and($calculator->currentBalance($bkash->fresh())->toDecimalString())->toBe('25000.00');
 });
 
-test('editing a transfer to move it between different accounts reverses the old pair and applies the new one', function () {
+test('editing a transfer to move it between different accounts does not change any account balance, but the computed totals move to the new pair', function () {
     $user = User::factory()->create();
     $bank = Account::factory()->for($user)->create(['balance' => 40000]);
     $bkash = Account::factory()->for($user)->create(['balance' => 10000]);
@@ -79,14 +88,19 @@ test('editing a transfer to move it between different accounts reverses the old 
         'note' => null,
     ]);
 
-    // "from" account is unchanged and the amount is unchanged, so its net
-    // effect is a reversal followed by an identical re-application - no change.
+    $calculator = app(AccountCalculator::class);
+
+    // bkash is no longer party to the transfer at all, so its computed
+    // balance returns to its untouched opening figure.
     expect($bank->fresh()->balance)->toBe('40000.00')
-        ->and($bkash->fresh()->balance)->toBe('0.00')
-        ->and($cash->fresh()->balance)->toBe('15000.00');
+        ->and($bkash->fresh()->balance)->toBe('10000.00')
+        ->and($cash->fresh()->balance)->toBe('5000.00')
+        ->and($calculator->currentBalance($bank->fresh())->toDecimalString())->toBe('30000.00')
+        ->and($calculator->currentBalance($bkash->fresh())->toDecimalString())->toBe('10000.00')
+        ->and($calculator->currentBalance($cash->fresh())->toDecimalString())->toBe('15000.00');
 });
 
-test('deleting a transfer reverses both account balances', function () {
+test('deleting a transfer does not change either account balance, and it stops affecting the computed totals', function () {
     $user = User::factory()->create();
     $bank = Account::factory()->for($user)->create(['balance' => 40000]);
     $bkash = Account::factory()->for($user)->create(['balance' => 10000]);
@@ -102,8 +116,13 @@ test('deleting a transfer reverses both account balances', function () {
         ->assertRedirect(route('transfers.index'));
 
     $this->assertDatabaseMissing('account_transfers', ['id' => $transfer->id]);
-    expect($bank->fresh()->balance)->toBe('50000.00')
-        ->and($bkash->fresh()->balance)->toBe('0.00');
+
+    $calculator = app(AccountCalculator::class);
+
+    expect($bank->fresh()->balance)->toBe('40000.00')
+        ->and($bkash->fresh()->balance)->toBe('10000.00')
+        ->and($calculator->currentBalance($bank->fresh())->toDecimalString())->toBe('40000.00')
+        ->and($calculator->currentBalance($bkash->fresh())->toDecimalString())->toBe('10000.00');
 });
 
 test('amount must be greater than zero', function () {

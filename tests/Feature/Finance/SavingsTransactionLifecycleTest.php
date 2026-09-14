@@ -4,6 +4,7 @@ use App\Models\Account;
 use App\Models\SavingsGoal;
 use App\Models\SavingsTransaction;
 use App\Models\User;
+use App\Services\Finance\AccountCalculator;
 
 function makeSavingsContext(User $user): array
 {
@@ -19,7 +20,7 @@ test('guests are redirected to the login page', function () {
     $this->get(route('savings-goals.transactions.create', $goal))->assertRedirect(route('login'));
 });
 
-test('a contribution debits the account and grows the goal', function () {
+test('a contribution does not change the account balance, but debits the computed current balance and grows the goal', function () {
     $user = User::factory()->create();
     ['goal' => $goal, 'account' => $account] = makeSavingsContext($user);
 
@@ -40,14 +41,14 @@ test('a contribution debits the account and grows the goal', function () {
         'type' => 'contribution',
     ]);
 
-    expect($account->fresh()->balance)->toBe('80000.00');
+    expect($account->fresh()->balance)->toBe('100000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('80000.00');
 });
 
-test('a withdrawal credits the account and shrinks the goal', function () {
+test('a withdrawal does not change the account balance, but credits the computed current balance and shrinks the goal', function () {
     $user = User::factory()->create();
     ['goal' => $goal, 'account' => $account] = makeSavingsContext($user);
     SavingsTransaction::factory()->for($user)->for($goal, 'savingsGoal')->for($account)->create(['amount' => 100000]);
-    $account->forceFill(['balance' => 0])->save();
 
     $this->actingAs($user)
         ->post(route('savings-goals.transactions.store', $goal), [
@@ -58,7 +59,8 @@ test('a withdrawal credits the account and shrinks the goal', function () {
         ])
         ->assertRedirect(route('savings-goals.show', $goal));
 
-    expect($account->fresh()->balance)->toBe('20000.00');
+    expect($account->fresh()->balance)->toBe('100000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('20000.00');
 });
 
 test('a withdrawal cannot exceed the currently saved amount', function () {
@@ -78,11 +80,10 @@ test('a withdrawal cannot exceed the currently saved amount', function () {
     $this->assertDatabaseMissing('savings_transactions', ['amount' => '150000.00']);
 });
 
-test('editing a transaction reverses the old amount and applies the new one', function () {
+test('editing a transaction does not change the account balance, but the computed current balance reflects the new amount', function () {
     $user = User::factory()->create();
     ['goal' => $goal, 'account' => $account] = makeSavingsContext($user);
     $transaction = SavingsTransaction::factory()->for($user)->for($goal, 'savingsGoal')->for($account)->create(['amount' => 20000]);
-    $account->forceFill(['balance' => 80000])->save();
 
     $this->actingAs($user)
         ->put(route('transactions.update', $transaction), [
@@ -95,7 +96,8 @@ test('editing a transaction reverses the old amount and applies the new one', fu
         ->assertRedirect(route('savings-goals.show', $goal));
 
     expect($transaction->fresh()->amount)->toBe('30000.00')
-        ->and($account->fresh()->balance)->toBe('70000.00');
+        ->and($account->fresh()->balance)->toBe('100000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('70000.00');
 });
 
 test('increasing an existing withdrawal is validated against the goal without double counting itself', function () {
@@ -119,18 +121,18 @@ test('increasing an existing withdrawal is validated against the goal without do
     expect($withdrawal->fresh()->amount)->toBe('90000.00');
 });
 
-test('deleting a transaction reverses the account effect', function () {
+test('deleting a transaction does not change the account balance, and it stops affecting the computed current balance', function () {
     $user = User::factory()->create();
     ['goal' => $goal, 'account' => $account] = makeSavingsContext($user);
     $transaction = SavingsTransaction::factory()->for($user)->for($goal, 'savingsGoal')->for($account)->create(['amount' => 20000]);
-    $account->forceFill(['balance' => 80000])->save();
 
     $this->actingAs($user)
         ->delete(route('transactions.destroy', $transaction))
         ->assertRedirect(route('savings-goals.show', $goal));
 
     $this->assertDatabaseMissing('savings_transactions', ['id' => $transaction->id]);
-    expect($account->fresh()->balance)->toBe('100000.00');
+    expect($account->fresh()->balance)->toBe('100000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('100000.00');
 });
 
 test('deleting a contribution that a later withdrawal depends on is rejected', function () {

@@ -5,6 +5,7 @@ use App\Models\Contact;
 use App\Models\Loan;
 use App\Models\LoanRepayment;
 use App\Models\User;
+use App\Services\Finance\AccountCalculator;
 use App\Services\Finance\LoanService;
 use Illuminate\Database\QueryException;
 
@@ -12,7 +13,7 @@ test('guests are redirected to the login page', function () {
     $this->get(route('loans.index'))->assertRedirect(route('login'));
 });
 
-test('creating a loan given debits the source account', function () {
+test('creating a loan given does not change the account balance, but debits the computed current balance', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create(['balance' => 10000]);
     $contact = Contact::factory()->for($user)->create(['name' => 'Anamul']);
@@ -35,10 +36,11 @@ test('creating a loan given debits the source account', function () {
         'amount' => '5000.00',
     ]);
 
-    expect($account->fresh()->balance)->toBe('5000.00');
+    expect($account->fresh()->balance)->toBe('10000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('5000.00');
 });
 
-test('creating a loan taken credits the destination account', function () {
+test('creating a loan taken does not change the account balance, but credits the computed current balance', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create(['balance' => 10000]);
     $contact = Contact::factory()->for($user)->create(['name' => 'Rahim']);
@@ -53,10 +55,11 @@ test('creating a loan taken credits the destination account', function () {
         ])
         ->assertRedirect(route('loans.index', ['direction' => 'taken']));
 
-    expect($account->fresh()->balance)->toBe('30000.00');
+    expect($account->fresh()->balance)->toBe('10000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('30000.00');
 });
 
-test('editing a loan given reverses the old amount and applies the new one', function () {
+test('editing a loan given does not change the account balance, but the computed current balance reflects the new amount', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create(['balance' => 10000]);
     $contact = Contact::factory()->for($user)->create();
@@ -65,8 +68,6 @@ test('editing a loan given reverses the old amount and applies the new one', fun
         'contact_id' => $contact->id,
         'amount' => 2000,
     ]);
-    // Simulate the debit that would have happened when the loan was created.
-    $account->forceFill(['balance' => 8000])->save();
 
     $this->actingAs($user)
         ->put(route('loans.update', $loan), [
@@ -78,10 +79,11 @@ test('editing a loan given reverses the old amount and applies the new one', fun
         ->assertRedirect(route('loans.index', ['direction' => 'given']));
 
     expect($loan->fresh()->amount)->toBe('3000.00')
-        ->and($account->fresh()->balance)->toBe('7000.00');
+        ->and($account->fresh()->balance)->toBe('10000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('7000.00');
 });
 
-test('editing a loan to move it to a different account reverses the old account and applies the new one', function () {
+test('editing a loan to move it to a different account does not change either account balance, but the computed totals move with it', function () {
     $user = User::factory()->create();
     $oldAccount = Account::factory()->for($user)->create(['balance' => 10000]);
     $newAccount = Account::factory()->for($user)->create(['balance' => 5000]);
@@ -91,7 +93,6 @@ test('editing a loan to move it to a different account reverses the old account 
         'contact_id' => $contact->id,
         'amount' => 1000,
     ]);
-    $oldAccount->forceFill(['balance' => 11000])->save();
 
     $this->actingAs($user)->put(route('loans.update', $loan), [
         'contact_id' => $loan->contact_id,
@@ -100,8 +101,12 @@ test('editing a loan to move it to a different account reverses the old account 
         'loan_date' => '2026-08-30',
     ]);
 
+    $calculator = app(AccountCalculator::class);
+
     expect($oldAccount->fresh()->balance)->toBe('10000.00')
-        ->and($newAccount->fresh()->balance)->toBe('6000.00');
+        ->and($newAccount->fresh()->balance)->toBe('5000.00')
+        ->and($calculator->currentBalance($oldAccount->fresh())->toDecimalString())->toBe('10000.00')
+        ->and($calculator->currentBalance($newAccount->fresh())->toDecimalString())->toBe('6000.00');
 });
 
 test('the loan amount cannot be edited below what has already been repaid', function () {
@@ -129,21 +134,21 @@ test('the loan amount cannot be edited below what has already been repaid', func
         ->assertInvalid(['amount']);
 });
 
-test('deleting a loan reverses the account balance', function () {
+test('deleting a loan does not change the account balance, and it stops affecting the computed current balance', function () {
     $user = User::factory()->create();
     $account = Account::factory()->for($user)->create(['balance' => 10000]);
     $loan = Loan::factory()->for($user)->given()->create([
         'account_id' => $account->id,
         'amount' => 1000,
     ]);
-    $account->forceFill(['balance' => 9000])->save();
 
     $this->actingAs($user)
         ->delete(route('loans.destroy', $loan))
         ->assertRedirect(route('loans.index', ['direction' => 'given']));
 
     $this->assertDatabaseMissing('loans', ['id' => $loan->id]);
-    expect($account->fresh()->balance)->toBe('10000.00');
+    expect($account->fresh()->balance)->toBe('10000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($account->fresh())->toDecimalString())->toBe('10000.00');
 });
 
 test('deleting a loan with existing repayments is rejected', function () {

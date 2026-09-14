@@ -5,6 +5,7 @@ use App\Models\Loan;
 use App\Models\LoanRepayment;
 use App\Models\LoanTransfer;
 use App\Models\User;
+use App\Services\Finance\AccountCalculator;
 
 test('guests are redirected to the login page', function () {
     $user = User::factory()->create();
@@ -14,7 +15,7 @@ test('guests are redirected to the login page', function () {
     $this->get(route('loans.transfers.create', $loan))->assertRedirect(route('login'));
 });
 
-test('a transfer credits the destination account and reduces the held balance', function () {
+test('a transfer does not change the destination account balance, but credits the computed current balance and reduces the held balance', function () {
     $user = User::factory()->create();
     $sourceAccount = Account::factory()->for($user)->create();
     $destinationAccount = Account::factory()->for($user)->create(['balance' => 1000]);
@@ -35,7 +36,8 @@ test('a transfer credits the destination account and reduces the held balance', 
         'amount' => '2000.00',
     ]);
 
-    expect($destinationAccount->fresh()->balance)->toBe('3000.00');
+    expect($destinationAccount->fresh()->balance)->toBe('1000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($destinationAccount->fresh())->toDecimalString())->toBe('3000.00');
 });
 
 test('a transfer cannot exceed the held (untransferred) balance', function () {
@@ -73,7 +75,7 @@ test('a transfer cannot be created for a loan taken', function () {
         ->assertNotFound();
 });
 
-test('editing a transfer reverses the old account effect and reapplies the new one', function () {
+test('editing a transfer does not change the destination account balance, but the computed current balance reflects the new amount', function () {
     $user = User::factory()->create();
     $sourceAccount = Account::factory()->for($user)->create();
     $destinationAccount = Account::factory()->for($user)->create(['balance' => 1000]);
@@ -84,8 +86,6 @@ test('editing a transfer reverses the old account effect and reapplies the new o
         'account_id' => $destinationAccount->id,
         'amount' => 2000,
     ]);
-    // Simulate the credit that would have happened when the transfer was created.
-    $destinationAccount->forceFill(['balance' => 3000])->save();
 
     $this->actingAs($user)
         ->put(route('loans.transfers.update', [$loan, $transfer]), [
@@ -96,7 +96,8 @@ test('editing a transfer reverses the old account effect and reapplies the new o
         ->assertRedirect(route('loans.show', $loan));
 
     expect($transfer->fresh()->amount)->toBe('3000.00')
-        ->and($destinationAccount->fresh()->balance)->toBe('4000.00');
+        ->and($destinationAccount->fresh()->balance)->toBe('1000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($destinationAccount->fresh())->toDecimalString())->toBe('4000.00');
 });
 
 test('a mismatched transfer/loan pair 404s even when both are owned by the requester', function () {
@@ -111,7 +112,7 @@ test('a mismatched transfer/loan pair 404s even when both are owned by the reque
         ->assertNotFound();
 });
 
-test('deleting a transfer reverses its account effect', function () {
+test('deleting a transfer does not change the destination account balance, and it stops affecting the computed current balance', function () {
     $user = User::factory()->create();
     $sourceAccount = Account::factory()->for($user)->create();
     $destinationAccount = Account::factory()->for($user)->create(['balance' => 1000]);
@@ -122,14 +123,14 @@ test('deleting a transfer reverses its account effect', function () {
         'account_id' => $destinationAccount->id,
         'amount' => 2000,
     ]);
-    $destinationAccount->forceFill(['balance' => 3000])->save();
 
     $this->actingAs($user)
         ->delete(route('loans.transfers.destroy', [$loan, $transfer]))
         ->assertRedirect(route('loans.show', $loan));
 
     $this->assertDatabaseMissing('loan_transfers', ['id' => $transfer->id]);
-    expect($destinationAccount->fresh()->balance)->toBe('1000.00');
+    expect($destinationAccount->fresh()->balance)->toBe('1000.00')
+        ->and(app(AccountCalculator::class)->currentBalance($destinationAccount->fresh())->toDecimalString())->toBe('1000.00');
 });
 
 test('a user cannot view, edit, or delete another users transfer', function () {

@@ -80,7 +80,7 @@ class IncomeController extends Controller
     }
 
     /**
-     * Remove the income entry, reversing its account balance effect.
+     * Remove the income entry.
      */
     #[Authorize('delete', 'income')]
     public function destroy(Income $income): RedirectResponse
