@@ -1,12 +1,12 @@
 import { Link } from '@inertiajs/react';
-import { LayoutGrid, Menu, Plus, Receipt, WalletCards } from 'lucide-react';
+import { HandCoins, LayoutGrid, Menu, Plus, Receipt } from 'lucide-react';
 import { useState } from 'react';
 import { MoreMenu } from '@/components/more-menu';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
-import budgets from '@/routes/budgets';
 import expenses from '@/routes/expenses';
+import loans from '@/routes/loans';
 import type { NavItem } from '@/types';
 
 const LEFT_ITEMS: NavItem[] = [
@@ -15,7 +15,7 @@ const LEFT_ITEMS: NavItem[] = [
 ];
 
 const RIGHT_ITEMS: NavItem[] = [
-    { title: 'Budgets', href: budgets.index(), icon: WalletCards },
+    { title: 'Loans', href: loans.index(), icon: HandCoins },
 ];
 
 export function BottomNav() {

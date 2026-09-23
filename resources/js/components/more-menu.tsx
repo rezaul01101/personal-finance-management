@@ -2,13 +2,13 @@ import { Link } from '@inertiajs/react';
 import {
     ArrowLeftRight,
     Banknote,
-    HandCoins,
     ListTree,
     PiggyBank,
     Settings,
     Tags,
     Users,
     Wallet,
+    WalletCards,
 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import {
@@ -19,10 +19,10 @@ import {
 } from '@/components/ui/sheet';
 import accounts from '@/routes/accounts';
 import budgetCategories from '@/routes/budget-categories';
+import budgets from '@/routes/budgets';
 import contacts from '@/routes/contacts';
 import expenseCategories from '@/routes/expense-categories';
 import incomes from '@/routes/incomes';
-import loans from '@/routes/loans';
 import { edit as editProfile } from '@/routes/profile';
 import savingsGoals from '@/routes/savings-goals';
 import transfers from '@/routes/transfers';
@@ -33,9 +33,9 @@ const MANAGE_ITEMS: {
     href: NonNullable<InertiaLinkProps['href']>;
     icon: ComponentType<{ className?: string }>;
 }[] = [
+    { title: 'Budgets', href: budgets.index(), icon: WalletCards },
     { title: 'Income', href: incomes.index(), icon: Banknote },
     { title: 'Savings', href: savingsGoals.index(), icon: PiggyBank },
-    { title: 'Loans', href: loans.index(), icon: HandCoins },
     { title: 'People', href: contacts.index(), icon: Users },
     { title: 'Transfers', href: transfers.index(), icon: ArrowLeftRight },
     {
