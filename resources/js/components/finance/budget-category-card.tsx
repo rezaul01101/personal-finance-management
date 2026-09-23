@@ -38,43 +38,45 @@ export function BudgetCategoryCard({
                     )}
                 </CardHeader>
                 <CardContent className="space-y-3">
-                    <div>
-                        <p className="text-2xl font-bold">
-                            ৳{summary.used_amount}{' '}
-                            <span className="text-muted-foreground text-sm font-normal">
-                                used
-                            </span>
-                        </p>
-                        <p className="text-muted-foreground text-sm">
-                            of ৳{summary.budget_amount}
-                        </p>
+                    <div className="flex items-start justify-between gap-4">
+                        <div>
+                            <p className="text-2xl font-bold">
+                                ৳{summary.used_amount}{' '}
+                                <span className="text-muted-foreground text-sm font-normal">
+                                    used
+                                </span>
+                            </p>
+                            <p className="text-muted-foreground text-sm">
+                                of ৳{summary.budget_amount}
+                            </p>
+                        </div>
+
+                        {summary.is_exceeded ? (
+                            <p className="text-destructive text-right text-sm font-semibold">
+                                ৳{summary.over_budget_amount} over
+                            </p>
+                        ) : (
+                            <div className="grid grid-cols-[auto_auto] gap-x-1.5 gap-y-0.5 text-sm">
+                                <span className="text-muted-foreground">
+                                    Daily Safe Spend
+                                </span>
+                                <b className="text-foreground">
+                                    ৳{summary.daily_safe_spend}/day
+                                </b>
+                                <span className="text-muted-foreground">
+                                    Available
+                                </span>
+                                <b className="text-foreground">
+                                    ৳{summary.available_amount}
+                                </b>
+                            </div>
+                        )}
                     </div>
 
                     <ProgressBar
                         percentage={summary.usage_percentage}
                         health={health}
                     />
-
-                    {summary.is_exceeded ? (
-                        <p className="text-destructive text-sm font-semibold">
-                            Budget exceeded — ৳{summary.over_budget_amount} over
-                        </p>
-                    ) : (
-                        <div className="flex items-center justify-between text-sm">
-                            <span className="text-muted-foreground">
-                                Available{' '}
-                                <b className="text-foreground">
-                                    ৳{summary.available_amount}
-                                </b>
-                            </span>
-                            <span className="text-muted-foreground">
-                                Daily Safe Spend{' '}
-                                <b className="text-foreground">
-                                    ৳{summary.daily_safe_spend}/day
-                                </b>
-                            </span>
-                        </div>
-                    )}
                 </CardContent>
             </Card>
         </Link>
