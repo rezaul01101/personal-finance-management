@@ -21,7 +21,6 @@ interface BudgetRow {
 export default function Dashboard({
     year,
     month,
-    remainingDays,
     budgets: budgetRows,
     topExpenseCategories,
     recentExpenses,
@@ -30,7 +29,6 @@ export default function Dashboard({
 }: {
     year: number;
     month: number;
-    remainingDays: number;
     budgets: BudgetRow[];
     topExpenseCategories: {
         label: string;
@@ -47,10 +45,7 @@ export default function Dashboard({
 
             <div className="space-y-6 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                    <Heading
-                        title="Dashboard"
-                        description={`${remainingDays} ${remainingDays === 1 ? 'day' : 'days'} left this month`}
-                    />
+                    <Heading title="Dashboard" />
 
                     <div className="flex items-center gap-3">
                         <MonthSelector
