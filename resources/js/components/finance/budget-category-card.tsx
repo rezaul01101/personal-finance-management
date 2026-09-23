@@ -5,6 +5,10 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import budgetCategories from '@/routes/budget-categories';
 import type { BudgetSummary } from '@/types/finance';
 
+function toInt(value: string): string {
+    return String(Math.round(parseFloat(value)));
+}
+
 export function BudgetCategoryCard({
     category,
     summary,
@@ -41,33 +45,33 @@ export function BudgetCategoryCard({
                     <div className="flex items-start justify-between gap-4">
                         <div>
                             <p className="text-2xl font-bold">
-                                ৳{summary.used_amount}{' '}
+                                ৳{toInt(summary.used_amount)}{' '}
                                 <span className="text-muted-foreground text-sm font-normal">
                                     used
                                 </span>
                             </p>
                             <p className="text-muted-foreground text-sm">
-                                of ৳{summary.budget_amount}
+                                of ৳{toInt(summary.budget_amount)}
                             </p>
                         </div>
 
                         {summary.is_exceeded ? (
                             <p className="text-destructive text-right text-sm font-semibold">
-                                ৳{summary.over_budget_amount} over
+                                ৳{toInt(summary.over_budget_amount)} over
                             </p>
                         ) : (
                             <div className="grid grid-cols-[auto_auto] gap-x-1.5 gap-y-0.5 text-sm">
-                                <span className="text-muted-foreground">
-                                    Daily Safe Spend
+                                <span className="text-muted-foreground text-right">
+                                    Spend
                                 </span>
                                 <b className="text-foreground">
-                                    ৳{summary.daily_safe_spend}/day
+                                    ৳{toInt(summary.daily_safe_spend)}/day
                                 </b>
-                                <span className="text-muted-foreground">
+                                <span className="text-muted-foreground text-right">
                                     Available
                                 </span>
                                 <b className="text-foreground">
-                                    ৳{summary.available_amount}
+                                    ৳{toInt(summary.available_amount)}
                                 </b>
                             </div>
                         )}
