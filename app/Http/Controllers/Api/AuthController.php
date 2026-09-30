@@ -65,7 +65,7 @@ class AuthController extends Controller
     }
 
     /**
-     * @return array{user: array{id: int, name: string, email: string}, token: string}
+     * @return array{user: array{id: int, name: string, email: string, avatar_url: string|null}, token: string}
      */
     private function authPayload(User $user, ?string $deviceName, ?DateTimeInterface $expiresAt = null): array
     {
@@ -76,10 +76,10 @@ class AuthController extends Controller
     }
 
     /**
-     * @return array{id: int, name: string, email: string}
+     * @return array{id: int, name: string, email: string, avatar_url: string|null}
      */
     private function userPayload(User $user): array
     {
-        return ['id' => $user->id, 'name' => $user->name, 'email' => $user->email];
+        return $user->toApiPayload();
     }
 }

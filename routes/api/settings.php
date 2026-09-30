@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('settings')->group(function () {
     Route::patch('profile', [SettingsController::class, 'updateProfile']);
+    Route::post('avatar', [SettingsController::class, 'updateAvatar'])->middleware('throttle:20,1');
+    Route::delete('avatar', [SettingsController::class, 'destroyAvatar']);
     Route::put('password', [SettingsController::class, 'updatePassword'])->middleware('throttle:6,1');
     Route::delete('account', [SettingsController::class, 'destroy'])->middleware('throttle:6,1');
 

@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\AvatarUpdateRequest;
 use App\Http\Requests\Settings\PasswordUpdateRequest;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Services\DatabaseBackupService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -25,7 +27,35 @@ class SettingsController extends Controller
 
         $user->save();
 
-        return response()->json(['user' => ['id' => $user->id, 'name' => $user->name, 'email' => $user->email]]);
+        return response()->json(['user' => $user->toApiPayload()]);
+    }
+
+    public function updateAvatar(AvatarUpdateRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $previous = $user->avatar_path;
+
+        $user->avatar_path = $request->file('avatar')->store('avatars', 'public');
+        $user->save();
+
+        if ($previous) {
+            Storage::disk('public')->delete($previous);
+        }
+
+        return response()->json(['user' => $user->toApiPayload()]);
+    }
+
+    public function destroyAvatar(): JsonResponse
+    {
+        $user = request()->user();
+
+        if ($user->avatar_path) {
+            Storage::disk('public')->delete($user->avatar_path);
+            $user->avatar_path = null;
+            $user->save();
+        }
+
+        return response()->json(['user' => $user->toApiPayload()]);
     }
 
     public function updatePassword(PasswordUpdateRequest $request): Response
@@ -40,6 +70,11 @@ class SettingsController extends Controller
         $user = $request->user();
 
         $user->tokens()->delete();
+
+        if ($user->avatar_path) {
+            Storage::disk('public')->delete($user->avatar_path);
+        }
+
         $user->delete();
 
         return response()->noContent();

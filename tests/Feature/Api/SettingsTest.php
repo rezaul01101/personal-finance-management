@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 
 test('guests cannot reach settings endpoints', function () {
@@ -9,6 +11,8 @@ test('guests cannot reach settings endpoints', function () {
     $this->putJson('/api/v1/settings/password', [])->assertUnauthorized();
     $this->deleteJson('/api/v1/settings/account', [])->assertUnauthorized();
     $this->postJson('/api/v1/settings/backup/link')->assertUnauthorized();
+    $this->postJson('/api/v1/settings/avatar', [])->assertUnauthorized();
+    $this->deleteJson('/api/v1/settings/avatar')->assertUnauthorized();
 });
 
 test('the profile can be updated and a changed email is unverified', function () {
@@ -99,4 +103,89 @@ test('the backup download rejects an unsigned or tampered url', function () {
 
     Sanctum::actingAs(User::factory()->create());
     $this->get('/api/v1/settings/backup/download')->assertForbidden();
+});
+
+test('a profile photo can be uploaded and replaces the previous one', function () {
+    Storage::fake('public');
+    $user = User::factory()->create();
+    Sanctum::actingAs($user);
+
+    $first = $this->post('/api/v1/settings/avatar', ['avatar' => UploadedFile::fake()->image('me.jpg')], ['Accept' => 'application/json'])
+        ->assertOk()
+        ->assertJsonPath('user.id', $user->id);
+
+    $firstPath = $user->fresh()->avatar_path;
+    expect($firstPath)->toStartWith('avatars/');
+    Storage::disk('public')->assertExists($firstPath);
+    expect($first->json('user.avatar_url'))->toBe(Storage::disk('public')->url($firstPath));
+
+    $this->post('/api/v1/settings/avatar', ['avatar' => UploadedFile::fake()->image('new.png')], ['Accept' => 'application/json'])
+        ->assertOk();
+
+    $secondPath = $user->fresh()->avatar_path;
+    expect($secondPath)->not->toBe($firstPath);
+    Storage::disk('public')->assertMissing($firstPath);
+    Storage::disk('public')->assertExists($secondPath);
+});
+
+test('the profile photo must be an image under 5 MB', function () {
+    Storage::fake('public');
+    Sanctum::actingAs(User::factory()->create());
+
+    $this->post('/api/v1/settings/avatar', ['avatar' => UploadedFile::fake()->create('notes.pdf', 10, 'application/pdf')], ['Accept' => 'application/json'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('avatar');
+
+    $this->post('/api/v1/settings/avatar', ['avatar' => UploadedFile::fake()->image('huge.jpg')->size(6000)], ['Accept' => 'application/json'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('avatar');
+
+    $this->postJson('/api/v1/settings/avatar', [])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors('avatar');
+});
+
+test('the profile photo can be removed', function () {
+    Storage::fake('public');
+    $user = User::factory()->create();
+    Sanctum::actingAs($user);
+
+    $this->post('/api/v1/settings/avatar', ['avatar' => UploadedFile::fake()->image('me.jpg')], ['Accept' => 'application/json'])->assertOk();
+    $path = $user->fresh()->avatar_path;
+
+    $this->deleteJson('/api/v1/settings/avatar')
+        ->assertOk()
+        ->assertJsonPath('user.avatar_url', null);
+
+    expect($user->fresh()->avatar_path)->toBeNull();
+    Storage::disk('public')->assertMissing($path);
+
+    // Removing when there is no photo is a harmless no-op.
+    $this->deleteJson('/api/v1/settings/avatar')->assertOk()->assertJsonPath('user.avatar_url', null);
+});
+
+test('the user payload includes the avatar url', function () {
+    Storage::fake('public');
+    $user = User::factory()->create();
+    Sanctum::actingAs($user);
+
+    $this->getJson('/api/v1/auth/me')->assertOk()->assertJsonPath('user.avatar_url', null);
+
+    $this->post('/api/v1/settings/avatar', ['avatar' => UploadedFile::fake()->image('me.jpg')], ['Accept' => 'application/json'])->assertOk();
+
+    expect($this->getJson('/api/v1/auth/me')->assertOk()->json('user.avatar_url'))
+        ->toBe(Storage::disk('public')->url($user->fresh()->avatar_path));
+});
+
+test('deleting the account also deletes the profile photo', function () {
+    Storage::fake('public');
+    $user = User::factory()->create();
+    Sanctum::actingAs($user);
+
+    $this->post('/api/v1/settings/avatar', ['avatar' => UploadedFile::fake()->image('me.jpg')], ['Accept' => 'application/json'])->assertOk();
+    $path = $user->fresh()->avatar_path;
+
+    $this->deleteJson('/api/v1/settings/account', ['password' => 'password'])->assertNoContent();
+
+    Storage::disk('public')->assertMissing($path);
 });
