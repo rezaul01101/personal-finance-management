@@ -25,6 +25,12 @@ docker exec -e APP_ENV=testing -e DB_CONNECTION=sqlite -e DB_DATABASE=:memory: l
 
 Before trusting a test run against this container, verify with a throwaway assertion (`dump(app()->environment()); dump(config('database.default'));`) that it actually reports `testing` / `sqlite` — don't assume `phpunit.xml`'s forced env applied.
 
+### A cached config defeats the env overrides above (second wipe, 2026-09-30)
+
+If `bootstrap/cache/config.php` exists (from `php artisan config:cache` / `optimize`), Laravel ignores every env var at boot, including the `-e` flags and `phpunit.xml`'s `force="true"` values. `config('database.default')` then stays `mysql` and `RefreshDatabase` runs `migrate:fresh` against the live dev database anyway. This wiped the dev DB a second time even though the `-e APP_ENV=testing -e DB_CONNECTION=sqlite ...` flags were passed.
+
+Before the first test run in a session, run `docker exec laravel_app php artisan config:clear` and check that `docker exec -e APP_ENV=testing -e DB_CONNECTION=sqlite -e DB_DATABASE=:memory: laravel_app php artisan config:show database.default` prints `sqlite`. If it prints `mysql`, do not run the tests. A stale `bootstrap/cache/routes-v7.php` also hides newly added routes (404s), so run `php artisan route:clear` after adding routes.
+
 ### Known unrelated failure under sqlite
 
 `tests/Feature/Settings/BackupTest.php` fails under the sqlite connection (`SHOW CREATE TABLE` is MySQL-only syntax used by `DatabaseBackupService`). This is a pre-existing gap in that feature, not something introduced by other changes — don't try to "fix" it as a side effect of unrelated work.
