@@ -7,7 +7,7 @@
         body {
             font-family: 'Noto Sans Bengali', sans-serif;
             font-size: 11px;
-            color: #1f2937;
+            color: #0a0a0c;
         }
 
         h1 {
@@ -18,7 +18,7 @@
         .filters {
             margin-bottom: 12px;
             font-size: 10px;
-            color: #374151;
+            color: #4a4f63;
         }
 
         .filters span {
@@ -33,12 +33,12 @@
 
         th, td {
             padding: 6px 8px;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e8dccb;
             text-align: left;
         }
 
         th {
-            background-color: #f3f4f6;
+            background-color: #f3e8da;
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.03em;
@@ -49,14 +49,14 @@
         }
 
         tr.date-group td {
-            background-color: #f3f4f6;
+            background-color: #f3e8da;
             font-weight: bold;
-            border-bottom: 1px solid #d1d5db;
+            border-bottom: 1px solid #d9c9b3;
         }
 
         tfoot td {
             font-weight: bold;
-            border-top: 2px solid #1f2937;
+            border-top: 2px solid #0a0a0c;
             border-bottom: none;
         }
     </style>

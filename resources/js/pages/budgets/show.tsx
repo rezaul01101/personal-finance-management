@@ -78,7 +78,7 @@ export default function BudgetCategoryShow({
                                     </Badge>
                                 )}
                                 {health === 'warning' && (
-                                    <Badge className="bg-chart-4 text-white">
+                                    <Badge className="bg-warning text-warning-foreground">
                                         Warning
                                     </Badge>
                                 )}

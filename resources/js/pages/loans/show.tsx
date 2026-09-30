@@ -184,7 +184,7 @@ export default function LoansShow({
                                                         <p
                                                             className={
                                                                 isCredit
-                                                                    ? 'font-semibold text-green-600 dark:text-green-500'
+                                                                    ? 'font-semibold text-success'
                                                                     : 'font-semibold'
                                                             }
                                                         >

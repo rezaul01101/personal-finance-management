@@ -5,13 +5,15 @@
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
-@custom-variant dark (&:is(.dark *));
-
 @theme {
+    /* ---- Typography & spacing: change here, applies app-wide ---- */
     --font-sans:
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+
+    /* Base spacing unit: every p-*, m-*, gap-*, w-*, h-* utility is a multiple of this. */
+    --spacing: 0.25rem;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -41,6 +43,13 @@
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
 
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+
     --color-border: var(--border);
     --color-input: var(--input);
     --color-ring: var(--ring);
@@ -62,75 +71,61 @@
 }
 
 :root {
-    /* Shei Tech admin palette (ecom-easy/htmls/admin/assets/css/admin.css) */
-    --background: #f4f5f7;
-    --foreground: #14161a;
-    --card: #ffffff;
-    --card-foreground: #14161a;
-    --popover: #ffffff;
-    --popover-foreground: #14161a;
-    --primary: #fe2928;
-    --primary-foreground: #ffffff;
-    --secondary: #f6f7f9;
-    --secondary-foreground: #14161a;
-    --muted: #f1f2f4;
-    --muted-foreground: #8a9099;
-    --accent: #fff1f1;
-    --accent-foreground: #e01918;
-    --destructive: #d92d20;
-    --destructive-foreground: #ffffff;
-    --border: #e8eaed;
-    --input: #e8eaed;
-    --ring: #fe2928;
-    --chart-1: #fe2928;
-    --chart-2: #1d4ed8;
-    --chart-3: #12a150;
-    --chart-4: #c77700;
-    --chart-5: #f97316;
-    --radius: 0.625rem;
-    --sidebar: #101115;
-    --sidebar-foreground: #a7adb8;
-    --sidebar-primary: #fe2928;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #1a1b20;
-    --sidebar-accent-foreground: #ffffff;
-    --sidebar-border: #1f2024;
-    --sidebar-ring: #fe2928;
-}
+    /* ---- Brand palette (deep black + bright yellow): edit these two to re-colour everything ---- */
+    --palette-ink: #0a0a0c;
+    --palette-yellow: #ffd60a;
 
-.dark {
-    --background: #0b0c0e;
-    --foreground: #f4f5f7;
-    --card: #141519;
-    --card-foreground: #f4f5f7;
-    --popover: #141519;
-    --popover-foreground: #f4f5f7;
-    --primary: #fe2928;
-    --primary-foreground: #ffffff;
-    --secondary: #1c1d22;
-    --secondary-foreground: #f4f5f7;
-    --muted: #1c1d22;
-    --muted-foreground: #9aa0a8;
-    --accent: #241516;
-    --accent-foreground: #ff8a89;
-    --destructive: #ef4444;
-    --destructive-foreground: #ffffff;
-    --border: #26272c;
-    --input: #26272c;
-    --ring: #fe2928;
-    --chart-1: #fe2928;
-    --chart-2: #3b82f6;
-    --chart-3: #22c55e;
-    --chart-4: #f59e0b;
-    --chart-5: #f97316;
-    --sidebar: #101115;
-    --sidebar-foreground: #a7adb8;
-    --sidebar-primary: #fe2928;
-    --sidebar-primary-foreground: #ffffff;
-    --sidebar-accent: #1a1b20;
-    --sidebar-accent-foreground: #ffffff;
-    --sidebar-border: #1f2024;
-    --sidebar-ring: #fe2928;
+    /* Derived tones (tinted from the palette) for layered dark surfaces and text */
+    --palette-surface: #141417;
+    --palette-raised: #1e1e23;
+    --palette-line: #2b2b31;
+    --palette-snow: #f6f5ef;
+    --palette-mist: #a9a695;
+
+    /* ---- Semantic tokens (single dark theme) ---- */
+    color-scheme: dark;
+    --background: var(--palette-ink);
+    --foreground: var(--palette-snow);
+    --card: var(--palette-surface);
+    --card-foreground: var(--palette-snow);
+    --popover: var(--palette-surface);
+    --popover-foreground: var(--palette-snow);
+    --primary: var(--palette-yellow);
+    --primary-foreground: var(--palette-ink);
+    --secondary: var(--palette-raised);
+    --secondary-foreground: var(--palette-snow);
+    --muted: var(--palette-raised);
+    --muted-foreground: var(--palette-mist);
+    --accent: var(--palette-raised);
+    --accent-foreground: var(--palette-snow);
+    --destructive: #ff6b6b;
+    --destructive-foreground: var(--palette-ink);
+    --success: #5fd08a;
+    --success-foreground: var(--palette-ink);
+    --warning: #ff9f43;
+    --warning-foreground: var(--palette-ink);
+    --info: #6ea8ff;
+    --info-foreground: var(--palette-ink);
+    --border: var(--palette-line);
+    --input: var(--palette-line);
+    --ring: var(--palette-yellow);
+    --chart-1: var(--palette-yellow);
+    --chart-2: #ff9f43;
+    --chart-3: #ff6b6b;
+    --chart-4: #5fd08a;
+    --chart-5: #6ea8ff;
+    --radius: 0.875rem;
+    /* Floating "+" button in the bottom nav: solid red with a white plus */
+    --add-button: #e5262f;
+    --add-button-foreground: #ffffff;
+    --sidebar: var(--palette-ink);
+    --sidebar-foreground: var(--palette-mist);
+    --sidebar-primary: var(--palette-yellow);
+    --sidebar-primary-foreground: var(--palette-ink);
+    --sidebar-accent: var(--palette-surface);
+    --sidebar-accent-foreground: var(--palette-snow);
+    --sidebar-border: var(--palette-raised);
+    --sidebar-ring: var(--palette-yellow);
 }
 
 @layer base {

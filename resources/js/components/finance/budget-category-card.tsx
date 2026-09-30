@@ -38,7 +38,7 @@ export function BudgetCategoryCard({
                         <Badge variant="destructive">Exceeded</Badge>
                     )}
                     {health === 'warning' && (
-                        <Badge className="bg-chart-4 text-white">Warning</Badge>
+                        <Badge className="bg-warning text-warning-foreground">Warning</Badge>
                     )}
                 </CardHeader>
                 <CardContent className="space-y-3">

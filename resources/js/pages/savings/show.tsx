@@ -156,7 +156,7 @@ export default function SavingsShow({
                                                             className={
                                                                 transaction.type ===
                                                                 'contribution'
-                                                                    ? 'font-semibold text-green-600 dark:text-green-500'
+                                                                    ? 'font-semibold text-success'
                                                                     : 'font-semibold'
                                                             }
                                                         >

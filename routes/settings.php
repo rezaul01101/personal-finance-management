@@ -24,8 +24,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware('throttle:6,1')
         ->name('user-password.update');
 
-    Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
-
     Route::get('settings/backup', [BackupController::class, 'edit'])->name('backup.edit');
     Route::get('settings/backup/download', [BackupController::class, 'download'])->name('backup.download');
     Route::post('settings/backup/import', [BackupController::class, 'import'])->name('backup.import');

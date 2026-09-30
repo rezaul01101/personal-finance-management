@@ -69,7 +69,7 @@ export default function IncomesIndex({
                                     </p>
                                 </Link>
                                 <div className="flex items-center gap-2">
-                                    <p className="font-semibold text-green-600 dark:text-green-500">
+                                    <p className="font-semibold text-success">
                                         +৳{income.amount}
                                     </p>
                                     <Button

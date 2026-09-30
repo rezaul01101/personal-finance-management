@@ -24,7 +24,7 @@ export function BottomNav() {
 
     return (
         <>
-            <nav className="bg-card fixed inset-x-0 bottom-0 z-40 flex h-16 items-center justify-around border-t px-2 md:hidden">
+            <nav className="bg-primary fixed inset-x-0 bottom-0 z-40 flex h-16 items-center justify-around px-2 md:hidden">
                 {LEFT_ITEMS.map((item) => (
                     <BottomNavLink
                         key={item.title}
@@ -35,9 +35,10 @@ export function BottomNav() {
 
                 <Link
                     href={expenses.create()}
-                    className="bg-primary text-primary-foreground shadow-primary/30 -mt-7 grid size-14 place-items-center rounded-full shadow-lg"
+                    className="-mt-7 grid size-14 place-items-center rounded-full shadow-lg"
+                    style={{ backgroundColor: 'var(--add-button)', color: 'var(--add-button-foreground)' }}
                 >
-                    <Plus className="size-6" />
+                    <Plus className="size-6" strokeWidth={3} />
                     <span className="sr-only">Add Expense</span>
                 </Link>
 
@@ -52,7 +53,7 @@ export function BottomNav() {
                 <button
                     type="button"
                     onClick={() => setMoreOpen(true)}
-                    className="text-muted-foreground flex flex-col items-center gap-1 text-xs"
+                    className="text-primary-foreground/60 flex flex-col items-center gap-1 text-xs"
                 >
                     <Menu className="size-5" />
                     More
@@ -70,7 +71,7 @@ function BottomNavLink({ item, active }: { item: NavItem; active: boolean }) {
             href={item.href}
             className={cn(
                 'flex flex-col items-center gap-1 text-xs font-medium',
-                active ? 'text-primary' : 'text-muted-foreground',
+                active ? 'text-primary-foreground' : 'text-primary-foreground/60',
             )}
         >
             {item.icon && <item.icon className="size-5" />}
