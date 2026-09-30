@@ -56,6 +56,7 @@ test('the dashboard returns budgets, totals and top categories for the month', f
         ->assertJsonPath('budgets.0.daily_safe_spend', '1300.00')
         ->assertJsonPath('budgets.0.status', 'warning')
         ->assertJsonPath('totals.total_budget', '15000.00')
+        ->assertJsonPath('top_categories.0.id', ExpenseCategory::query()->where('name', 'Groceries')->value('id'))
         ->assertJsonPath('top_categories.0.label', 'Groceries')
         ->assertJsonPath('top_categories.0.amount', '12400.00');
 });

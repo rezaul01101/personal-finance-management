@@ -82,7 +82,7 @@ final class DashboardService
      * Spend by expense category across all budgets for the month, for the
      * "top categories" panel - highest spend first.
      *
-     * @return array<int, array{label: string, amount: string, percentage: float}>
+     * @return array<int, array{id: int, label: string, amount: string, percentage: float}>
      */
     public function topExpenseCategories(User $user, int $year, int $month, int $limit = 5): array
     {
@@ -102,6 +102,7 @@ final class DashboardService
                 );
 
                 return [
+                    'id' => $group->first()->expense_category_id,
                     'label' => $group->first()->expenseCategory->name,
                     'amount' => $categoryTotal->toDecimalString(),
                     'percentage' => BudgetMath::usagePercentage($totalSpent, $categoryTotal),
@@ -111,6 +112,7 @@ final class DashboardService
             ->sortByDesc(fn (array $row) => $row['total']->toFloat())
             ->take($limit)
             ->map(fn (array $row) => [
+                'id' => $row['id'],
                 'label' => $row['label'],
                 'amount' => $row['amount'],
                 'percentage' => $row['percentage'],
