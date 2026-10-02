@@ -7,18 +7,20 @@ export function UserInfo({
     user,
     showEmail = false,
     nameClassName,
+    avatarClassName,
 }: {
     user: User;
     showEmail?: boolean;
     nameClassName?: string;
+    avatarClassName?: string;
 }) {
     const getInitials = useInitials();
 
     return (
         <>
-            <Avatar className="h-8 w-8 overflow-hidden rounded-full">
+            <Avatar className={cn('h-8 w-8 overflow-hidden rounded-full', avatarClassName)}>
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="rounded-lg bg-secondary text-secondary-foreground">
+                <AvatarFallback className="bg-primary rounded-full text-white">
                     {getInitials(user.name)}
                 </AvatarFallback>
             </Avatar>

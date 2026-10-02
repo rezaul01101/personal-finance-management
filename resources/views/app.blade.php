@@ -7,8 +7,8 @@
         {{-- Inline style so the page background is right before app.css loads: keep in sync with --background in app.css --}}
         <style>
             html {
-                background-color: #0a0a0c;
-                color-scheme: dark;
+                background-color: #f6c9c9;
+                color-scheme: light;
             }
         </style>
 
@@ -17,10 +17,10 @@
         <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
         <link rel="manifest" href="/manifest.webmanifest">
-        <meta name="theme-color" content="#0a0a0c">
+        <meta name="theme-color" content="#f8dcdc">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
         <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Laravel') }}">
 
         @fonts

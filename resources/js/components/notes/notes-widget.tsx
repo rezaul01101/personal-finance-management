@@ -148,7 +148,7 @@ export function NotesWidget() {
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="bg-primary text-primary-foreground shadow-primary/30 fixed right-4 bottom-20 z-40 grid size-14 place-items-center rounded-full shadow-lg md:right-6 md:bottom-6"
+                className="bg-primary text-primary-foreground shadow-primary/30 fixed right-4 bottom-[7.5rem] z-40 grid size-12 place-items-center rounded-full shadow-lg md:right-6 md:bottom-6"
             >
                 <NotebookPen className="size-6" />
                 <span className="sr-only">Quick Notes</span>

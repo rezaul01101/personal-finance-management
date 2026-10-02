@@ -35,21 +35,21 @@ export function MonthSelector({
             : { year, month: month + 1 };
 
     return (
-        <div className="flex items-center gap-2">
+        <div className="glass flex w-full items-center justify-between gap-2 rounded-full p-1.5 sm:w-auto">
             <Link
                 href={buildHref(prev.year, prev.month)}
                 preserveScroll
-                className="hover:bg-accent rounded-md p-1.5"
+                className="grid size-9 place-items-center rounded-full bg-white/70 hover:bg-white"
             >
                 <ChevronLeft className="size-5" />
             </Link>
-            <span className="min-w-40 text-center text-lg font-semibold">
+            <span className="min-w-40 text-center text-base font-bold">
                 {MONTH_NAMES[month - 1]} {year}
             </span>
             <Link
                 href={buildHref(next.year, next.month)}
                 preserveScroll
-                className="hover:bg-accent rounded-md p-1.5"
+                className="grid size-9 place-items-center rounded-full bg-white/70 hover:bg-white"
             >
                 <ChevronRight className="size-5" />
             </Link>

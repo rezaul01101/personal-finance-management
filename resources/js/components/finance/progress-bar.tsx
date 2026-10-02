@@ -15,9 +15,9 @@ export function budgetHealth(usagePercentage: number): BudgetHealth {
 }
 
 const HEALTH_BAR_CLASSES: Record<BudgetHealth, string> = {
-    healthy: 'bg-chart-3',
-    warning: 'bg-chart-4',
-    exceeded: 'bg-destructive',
+    healthy: 'bg-success',
+    warning: 'bg-warning',
+    exceeded: 'bg-chart-3',
 };
 
 export function ProgressBar({
@@ -34,7 +34,7 @@ export function ProgressBar({
     return (
         <div
             className={cn(
-                'bg-muted h-2 w-full overflow-hidden rounded-full',
+                'bg-foreground/10 h-2 w-full overflow-hidden rounded-full',
                 className,
             )}
         >

@@ -11,20 +11,24 @@ import type { NavItem } from '@/types';
 
 const LEFT_ITEMS: NavItem[] = [
     { title: 'Home', href: dashboard(), icon: LayoutGrid },
-    { title: 'Transactions', href: expenses.index(), icon: Receipt },
+    { title: 'Activity', href: expenses.index(), icon: Receipt },
 ];
 
 const RIGHT_ITEMS: NavItem[] = [
     { title: 'Loans', href: loans.index(), icon: HandCoins },
 ];
 
+/** Floating near-white tab bar with a raised red "+" (mirrors the mobile app's BottomTabBar). */
 export function BottomNav() {
     const { isCurrentUrl } = useCurrentUrl();
     const [moreOpen, setMoreOpen] = useState(false);
 
     return (
         <>
-            <nav className="bg-primary fixed inset-x-0 bottom-0 z-40 flex h-16 items-center justify-around px-2 md:hidden">
+            <nav
+                className="fixed inset-x-3.5 bottom-[calc(env(safe-area-inset-bottom)+0.625rem)] z-40 mx-auto flex h-[70px] max-w-xl items-center rounded-[30px] px-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.14)] md:hidden"
+                style={{ backgroundColor: 'var(--bottom-bar)' }}
+            >
                 {LEFT_ITEMS.map((item) => (
                     <BottomNavLink
                         key={item.title}
@@ -33,14 +37,19 @@ export function BottomNav() {
                     />
                 ))}
 
-                <Link
-                    href={expenses.create()}
-                    className="-mt-7 grid size-14 place-items-center rounded-full shadow-lg"
-                    style={{ backgroundColor: 'var(--add-button)', color: 'var(--add-button-foreground)' }}
-                >
-                    <Plus className="size-6" strokeWidth={3} />
-                    <span className="sr-only">Add Expense</span>
-                </Link>
+                <div className="flex flex-1 items-center justify-center">
+                    <Link
+                        href={expenses.create()}
+                        className="-translate-y-4 grid size-[54px] place-items-center rounded-full border-[3px] border-white/75 shadow-[0_8px_10px_rgba(0,0,0,0.35)] active:opacity-90"
+                        style={{
+                            backgroundColor: 'var(--add-button)',
+                            color: 'var(--add-button-foreground)',
+                        }}
+                    >
+                        <Plus className="size-[26px]" strokeWidth={3} />
+                        <span className="sr-only">Add Expense</span>
+                    </Link>
+                </div>
 
                 {RIGHT_ITEMS.map((item) => (
                     <BottomNavLink
@@ -53,9 +62,10 @@ export function BottomNav() {
                 <button
                     type="button"
                     onClick={() => setMoreOpen(true)}
-                    className="text-primary-foreground/60 flex flex-col items-center gap-1 text-xs"
+                    className={tabClasses(moreOpen)}
+                    style={moreOpen ? undefined : { color: 'var(--bottom-bar-inactive)' }}
                 >
-                    <Menu className="size-5" />
+                    <Menu className="size-[22px]" />
                     More
                 </button>
             </nav>
@@ -65,16 +75,21 @@ export function BottomNav() {
     );
 }
 
+function tabClasses(active: boolean) {
+    return cn(
+        'flex min-h-12 flex-1 flex-col items-center justify-center gap-[3px] text-[11px] leading-[15px]',
+        active ? 'text-destructive font-bold' : 'font-semibold',
+    );
+}
+
 function BottomNavLink({ item, active }: { item: NavItem; active: boolean }) {
     return (
         <Link
             href={item.href}
-            className={cn(
-                'flex flex-col items-center gap-1 text-xs font-medium',
-                active ? 'text-primary-foreground' : 'text-primary-foreground/60',
-            )}
+            className={tabClasses(active)}
+            style={active ? undefined : { color: 'var(--bottom-bar-inactive)' }}
         >
-            {item.icon && <item.icon className="size-5" />}
+            {item.icon && <item.icon className="size-[22px]" />}
             {item.title}
         </Link>
     );

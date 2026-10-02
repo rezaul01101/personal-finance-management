@@ -61,7 +61,7 @@ export function MoreMenu({
 }) {
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent side="bottom" className="rounded-t-2xl px-4 pb-8">
+            <SheetContent side="bottom" className="rounded-t-3xl px-4 pb-8">
                 <SheetHeader className="px-0">
                     <SheetTitle>More</SheetTitle>
                 </SheetHeader>
@@ -72,7 +72,7 @@ export function MoreMenu({
                             key={item.title}
                             href={item.href}
                             onClick={() => onOpenChange(false)}
-                            className="hover:bg-accent hover:text-accent-foreground flex flex-col items-center gap-1.5 rounded-lg border p-3 text-center"
+                            className="glass hover:bg-accent hover:text-accent-foreground flex flex-col items-center gap-1.5 rounded-2xl p-3 text-center"
                         >
                             <item.icon className="size-5" />
                             <span className="text-xs leading-tight font-medium">

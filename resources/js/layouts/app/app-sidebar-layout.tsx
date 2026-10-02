@@ -19,7 +19,9 @@ export default function AppSidebarLayout({
                     className="min-w-0 overflow-x-clip"
                 >
                     <AppSidebarHeader breadcrumbs={breadcrumbs} />
-                    <div className="pb-20 md:pb-0">{children}</div>
+                    <div className="mx-auto w-full max-w-3xl pb-32 md:max-w-none md:pb-0">
+                        {children}
+                    </div>
                 </AppContent>
             </AppShell>
             <BottomNav />

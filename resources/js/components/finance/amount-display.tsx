@@ -10,7 +10,7 @@ export function AmountDisplay({
     return (
         <div
             className={cn(
-                'bg-secondary rounded-2xl p-2 text-center',
+                'rounded-2xl bg-white/60 p-2 text-center',
                 className,
             )}
         >
